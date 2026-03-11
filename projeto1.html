@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EducaFoco 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --card: #13131e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG noise */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+
+  .logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--muted); font-size: 11px; display: block; margin-top: 2px; font-weight: 300; }
+
+  .nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+
+  .nav-section { margin-bottom: 24px; }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 12px;
+    margin-bottom: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--muted);
+    transition: all 0.2s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(108,99,255,0.15); color: var(--accent); }
+  .nav-item .icon { font-size: 18px; width: 20px; text-align: center; }
+
+  .xp-bar {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .xp-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .xp-info span { font-size: 12px; }
+  .xp-info .level { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent); }
+  .xp-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.5s ease; }
+
+  /* ===== MAIN ===== */
+  .main {
+    margin-left: 260px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topbar {
+    height: 64px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar h2 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .theme-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .streak { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #ff9f43; font-weight: 600; }
+
+  .points-badge {
+    background: rgba(108,99,255,0.15);
+    border: 1px solid rgba(108,99,255,0.3);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ===== CONTENT ===== */
+  .content { padding: 32px; }
+
+  /* ===== PAGES ===== */
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== DASHBOARD ===== */
+  .welcome { margin-bottom: 32px; }
+  .welcome h1 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+  .welcome p { color: var(--muted); font-size: 15px; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .stat-card .card-icon { font-size: 28px; margin-bottom: 12px; }
+  .stat-card .card-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .stat-card .card-label { font-size: 12px; color: var(--muted); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.1;
+  }
+  .stat-card.c1::after { background: var(--accent); }
+  .stat-card.c2::after { background: var(--accent2); }
+  .stat-card.c3::after { background: var(--accent3); }
+  .stat-card.c4::after { background: #f9ca24; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .area-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .area-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(108,99,255,0.15); }
+  .area-card .area-icon { font-size: 36px; margin-bottom: 12px; }
+  .area-card h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .area-card p { font-size: 12px; color: var(--muted); }
+
+  /* Progresso disciplinas */
+  .progress-list { display: flex; flex-direction: column; gap: 12px; }
+  .prog-item { display: flex; align-items: center; gap: 12px; }
+  .prog-subject { width: 80px; font-size: 13px; color: var(--muted); }
+  .prog-bar { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+  .prog-pct { width: 40px; text-align: right; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+
+  /* ===== QUIZ SECTION ===== */
+  .quiz-container { max-width: 700px; }
+
+  .quiz-header { margin-bottom: 24px; }
+
+  .quiz-setup {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+  .form-group select, .form-group input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group select:focus, .form-group input:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn:hover { background: #5a52e0; transform: translateY(-1px); }
+  .btn.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn.btn-outline:hover { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,0.08); }
+  .btn.btn-success { background: var(--accent3); color: #0a0a0f; }
+  .btn.btn-danger { background: var(--accent2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .question-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .q-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+  .q-timer { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent2); font-weight: 600; }
+  .q-diff { font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 600; }
+  .diff-easy { background: rgba(67,233,123,0.15); color: var(--accent3); }
+  .diff-medium { background: rgba(249,202,36,0.15); color: #f9ca24; }
+  .diff-hard { background: rgba(255,101,132,0.15); color: var(--accent2); }
+
+  .question-text { font-size: 16px; line-height: 1.6; margin-bottom: 24px; font-weight: 500; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 18px;
+    border-radius: 10px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(108,99,255,0.08); }
+  .option-btn.correct { border-color: var(--accent3); background: rgba(67,233,123,0.12); color: var(--accent3); }
+  .option-btn.wrong { border-color: var(--accent2); background: rgba(255,101,132,0.12); color: var(--accent2); }
+  .option-btn:disabled { cursor: not-allowed; }
+
+  .option-letter {
+    width: 28px; height: 28px;
+    background: var(--border);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .feedback-box {
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-top: 14px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .feedback-box.show { display: flex; }
+  .feedback-box.correct { background: rgba(67,233,123,0.12); border: 1px solid rgba(67,233,123,0.3); color: var(--accent3); }
+  .feedback-box.wrong { background: rgba(255,101,132,0.12); border: 1px solid rgba(255,101,132,0.3); color: var(--accent2); }
+
+  /* Pomodoro */
+  .pomodoro-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .pomo-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 6px solid var(--border);
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: relative;
+    background: var(--surface2);
+  }
+
+  .pomo-svg {
+    position: absolute;
+    inset: -6px;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    transform: rotate(-90deg);
+  }
+
+  .pomo-circle-fill {
+    stroke-dasharray: 628;
+    stroke-dashoffset: 628;
+    transition: stroke-dashoffset 1s linear;
+    stroke: var(--accent);
+    stroke-width: 6;
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .pomo-time { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; }
+  .pomo-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .pomo-controls { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+
+  .pomo-modes { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
+  .pomo-mode-btn {
+    padding: 8px 16px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pomo-mode-btn.active { background: rgba(108,99,255,0.15); border-color: var(--accent); color: var(--accent); }
+
+  /* Metas / Hábitos */
+  .habit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .habit-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .habit-card.done { border-color: var(--accent3); background: rgba(67,233,123,0.08); }
+  .habit-card .h-icon { font-size: 28px; margin-bottom: 8px; }
+  .habit-card .h-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .habit-card .h-status { font-size: 11px; color: var(--muted); }
+  .habit-card.done .h-status { color: var(--accent3); }
+
+  .streak-bar { display: flex; gap: 4px; margin-bottom: 24px; }
+  .streak-day {
+    flex: 1;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+  .streak-day.done { background: rgba(108,99,255,0.4); color: var(--accent); }
+  .streak-day.today { background: var(--accent); color: white; font-weight: 700; }
+
+  /* Bíblico */
+  .verse-card {
+    background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(255,101,132,0.05));
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .verse-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    font-size: 160px;
+    color: rgba(108,99,255,0.08);
+    font-family: 'Syne', sans-serif;
+    line-height: 1;
+  }
+  .verse-text { font-size: 20px; line-height: 1.7; font-style: italic; margin-bottom: 16px; position: relative; }
+  .verse-ref { font-size: 13px; color: var(--accent); font-weight: 600; }
+
+  .reading-plan {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .plan-header h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .plan-header .plan-badge { font-size: 12px; background: rgba(67,233,123,0.15); color: var(--accent3); padding: 4px 10px; border-radius: 99px; }
+
+  .plan-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .plan-progress .p-bar { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .plan-progress .p-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; }
+  .plan-progress .p-pct { font-size: 12px; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+  /* Redação */
+  .essay-container { max-width: 800px; }
+  .essay-area {
+    width: 100%;
+    min-height: 300px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    resize: vertical;
+    outline: none;
+    line-height: 1.8;
+    transition: border-color 0.2s;
+  }
+  .essay-area:focus { border-color: var(--accent); }
+  .essay-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  .structure-guide {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .struct-part {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .struct-part h4 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .struct-part p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .struct-part .s-num { font-size: 24px; font-weight: 800; margin-bottom: 8px; opacity: 0.2; font-family: 'Syne', sans-serif; }
+
+  /* TCC */
+  .tcc-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .tcc-section h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tcc-section textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .tcc-section textarea:focus { border-color: var(--accent); }
+
+  .abnt-list { list-style: none; }
+  .abnt-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .abnt-list li:last-child { border-bottom: none; }
+  .abnt-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .abnt-check.checked { background: var(--accent3); border-color: var(--accent3); }
+
+  /* Resultado simulado */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 600px;
+  }
+  .result-score { font-family: 'Syne', sans-serif; font-size: 72px; font-weight: 800; line-height: 1; margin: 16px 0; }
+  .result-stars { font-size: 32px; margin-bottom: 16px; }
+
+  /* Reflexão bíblica */
+  .reflection-area {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .reflection-area h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .reflection-area textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .reflection-area textarea:focus { border-color: var(--accent); }
+
+  /* Plano estudo */
+  .plan-day {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .plan-day-num {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(108,99,255,0.15);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .plan-day-info { flex: 1; }
+  .plan-day-info strong { font-size: 14px; display: block; margin-bottom: 3px; }
+  .plan-day-info span { font-size: 12px; color: var(--muted); }
+  .plan-day-time { font-size: 12px; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+  /* Notification toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 14px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(67,233,123,0.4); }
+  .toast.error { border-color: rgba(255,101,132,0.4); }
+
+  /* Light theme */
+  [data-theme="light"] {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --surface2: #f0f0f5;
+    --border: #e0e0eb;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #888899;
+  }
+  [data-theme="light"] body { background: #f5f5f7; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+    .grid-4 { grid-template-columns: repeat(2,1fr); }
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; background: var(--surface2); padding: 4px; border-radius: 12px; margin-bottom: 24px; width: fit-content; }
+  .tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab.active { background: var(--accent); color: white; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .chip {
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .chip.active { background: rgba(108,99,255,0.15); border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>EducaFoco</h1>
+    <span>Versão 2.0 • Plataforma de Estudos</span>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" onclick="goTo('dashboard', this)">
+        <span class="icon">🏠</span> Dashboard
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Estudos</div>
+      <div class="nav-item" onclick="goTo('escola', this)">
+        <span class="icon">📚</span> Ensino Fundamental/Médio
+      </div>
+      <div class="nav-item" onclick="goTo('vestibular', this)">
+        <span class="icon">🎓</span> Vestibular & ENEM
+      </div>
+      <div class="nav-item" onclick="goTo('redacao', this)">
+        <span class="icon">✍️</span> Redação
+      </div>
+      <div class="nav-item" onclick="goTo('tcc', this)">
+        <span class="icon">📄</span> TCC & Faculdade
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Bem-Estar</div>
+      <div class="nav-item" onclick="goTo('biblico', this)">
+        <span class="icon">✝️</span> Estudos Bíblicos
+      </div>
+      <div class="nav-item" onclick="goTo('pessoal', this)">
+        <span class="icon">🌱</span> Desenvolvimento Pessoal
+      </div>
+      <div class="nav-item" onclick="goTo('pomodoro', this)">
+        <span class="icon">⏳</span> Timer Pomodoro
+      </div>
+    </div>
+  </nav>
+  <div class="xp-bar">
+    <div class="xp-info">
+      <span>Nível <span id="levelNum">5</span></span>
+      <span class="level" id="xpText">340 / 500 XP</span>
+    </div>
+    <div class="xp-track">
+      <div class="xp-fill" id="xpFill" style="width: 68%"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <h2 id="pageTitle">Dashboard</h2>
+    <div class="topbar-right">
+      <div class="streak">🔥 <span id="streakCount">7</span> dias</div>
+      <div class="points-badge" id="pointsBadge">⭐ 340 pts</div>
+      <button class="theme-btn" onclick="toggleTheme()" title="Mudar tema">🌙</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dashboard">
+      <div class="welcome">
+        <h1>Bom estudo hoje! 🚀</h1>
+        <p>Você está em uma sequência de <strong>7 dias</strong>. Continue assim!</p>
+      </div>
+
+      <div class="grid-4">
+        <div class="stat-card c1">
+          <div class="card-icon">⭐</div>
+          <div class="card-val" id="dash-pts">340</div>
+          <div class="card-label">Pontos totais</div>
+        </div>
+        <div class="stat-card c2">
+          <div class="card-icon">🔥</div>
+          <div class="card-val">7</div>
+          <div class="card-label">Dias seguidos</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="card-icon">✅</div>
+          <div class="card-val" id="dash-correct">24</div>
+          <div class="card-label">Acertos hoje</div>
+        </div>
+        <div class="stat-card c4">
+          <div class="card-icon">⏱️</div>
+          <div class="card-val">2h 15m</div>
+          <div class="card-label">Estudado hoje</div>
+        </div>
+      </div>
+
+      <div class="section-title">📊 Progresso por Disciplina</div>
+      <div class="progress-list" style="margin-bottom: 32px;">
+        <div class="prog-item">
+          <span class="prog-subject">Matemática</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:75%; background:linear-gradient(90deg,#6c63ff,#a29bfe)"></div></div>
+          <span class="prog-pct">75%</span>
+        </div>
+        <div class="prog-item">
+          <span class="prog-subject">Português</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:60%; background:linear-gradient(90deg,#ff6584,#ff9f43)"></div></div>
+          <span class="prog-pct">60%</span>
+        </div>
+        <div class="prog-item">
+          <span class="prog-subject">História</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:45%; background:linear-gradient(90deg,#43e97b,#38f9d7)"></div></div>
+          <span class="prog-pct">45%</span>
+        </div>
+        <div class="prog-item">
+          <span class="prog-subject">Biologia</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:82%; background:linear-gradient(90deg,#f9ca24,#f0932b)"></div></div>
+          <span class="prog-pct">82%</span>
+        </div>
+        <div class="prog-item">
+          <span class="prog-subject">Física</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:30%; background:linear-gradient(90deg,#a29bfe,#6c63ff)"></div></div>
+          <span class="prog-pct">30%</span>
+        </div>
+        <div class="prog-item">
+          <span class="prog-subject">Química</span>
+          <div class="prog-bar"><div class="prog-fill" style="width:55%; background:linear-gradient(90deg,#fd79a8,#e84393)"></div></div>
+          <span class="prog-pct">55%</span>
+        </div>
+      </div>
+
+      <div class="section-title">🎯 Áreas de Estudo</div>
+      <div class="grid-3">
+        <div class="area-card" onclick="goTo('escola', document.querySelector('[onclick*=escola]'))">
+          <div class="area-icon">📚</div>
+          <h3>Estudos Escolares</h3>
+          <p>Questões, simulados e planos de estudo por matéria</p>
+        </div>
+        <div class="area-card" onclick="goTo('vestibular', document.querySelector('[onclick*=vestibular]'))">
+          <div class="area-icon">🎓</div>
+          <h3>Vestibular & ENEM</h3>
+          <p>Banco de questões, simulado completo e estatísticas</p>
+        </div>
+        <div class="area-card" onclick="goTo('redacao', document.querySelector('[onclick*=redacao]'))">
+          <div class="area-icon">✍️</div>
+          <h3>Redação</h3>
+          <p>Escreva, estruture e melhore sua redação dissertativa</p>
+        </div>
+        <div class="area-card" onclick="goTo('biblico', document.querySelector('[onclick*=biblico]'))">
+          <div class="area-icon">✝️</div>
+          <h3>Estudos Bíblicos</h3>
+          <p>Devocional diário, plano de leitura e quiz bíblico</p>
+        </div>
+        <div class="area-card" onclick="goTo('pessoal', document.querySelector('[onclick*=pessoal]'))">
+          <div class="area-icon">🌱</div>
+          <h3>Desenvolvimento Pessoal</h3>
+          <p>Hábitos, metas e controle de evolução pessoal</p>
+        </div>
+        <div class="area-card" onclick="goTo('pomodoro', document.querySelector('[onclick*=pomodoro]'))">
+          <div class="area-icon">⏳</div>
+          <h3>Timer Pomodoro</h3>
+          <p>Técnica de foco com ciclos de trabalho e pausa</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCOLA -->
+    <div class="page" id="p-escola">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'escola-questoes')">📝 Questões</button>
+        <button class="tab" onclick="switchTab(this,'escola-plano')">📅 Plano de Estudo</button>
+        <button class="tab" onclick="switchTab(this,'escola-mapa')">🧠 Mapa Mental</button>
+      </div>
+
+      <div class="tab-panel active" id="escola-questoes">
+        <div class="quiz-container">
+          <div class="quiz-setup" id="escola-setup">
+            <h3 style="font-family:'Syne',sans-serif; font-size:18px; margin-bottom:20px; font-weight:700;">🎯 Configurar Prática</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>MATÉRIA</label>
+                <select id="escola-materia">
+                  <option>Matemática</option>
+                  <option>Português</option>
+                  <option>História</option>
+                  <option>Biologia</option>
+                  <option>Física</option>
+                  <option>Química</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>DIFICULDADE</label>
+                <select id="escola-dif">
+                  <option value="easy">🟢 Fácil</option>
+                  <option value="medium" selected>🟡 Médio</option>
+                  <option value="hard">🔴 Difícil</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+              <button class="btn" onclick="startEscolaQuiz()">🚀 Iniciar Questões</button>
+              <button class="btn btn-outline" onclick="startStudyPlan()">📅 Estudar para Prova</button>
+            </div>
+          </div>
+
+          <div id="escola-quiz-area" style="display:none">
+            <div class="question-card" id="escola-q">
+              <!-- filled dynamically -->
+            </div>
+            <div style="display:flex; gap:12px; align-items:center">
+              <button class="btn" id="escola-next-btn" onclick="nextEscolaQuestion()" disabled>Próxima →</button>
+              <button class="btn btn-outline" onclick="endEscolaQuiz()">Encerrar</button>
+              <span id="escola-score-display" style="margin-left:auto; font-size:13px; color:var(--muted)">Acertos: 0/0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="escola-plano">
+        <div id="plano-setup">
+          <div style="max-width:500px;">
+            <div class="quiz-setup">
+              <h3 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:20px;">📅 Modo Estudar para Prova</h3>
+              <div class="form-group" style="margin-bottom:14px">
+                <label>MATÉRIA</label>
+                <select id="plano-materia">
+                  <option>Matemática</option><option>Português</option><option>História</option>
+                  <option>Biologia</option><option>Física</option><option>Química</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label>CONTEÚDO / TEMA</label>
+                <input type="text" id="plano-conteudo" placeholder="Ex: Equações de 2º grau">
+              </div>
+              <div class="form-group" style="margin-bottom:20px">
+                <label>DATA DA PROVA</label>
+                <input type="date" id="plano-data">
+              </div>
+              <button class="btn" onclick="gerarPlano()">✨ Gerar Plano de Estudo</button>
+            </div>
+          </div>
+        </div>
+        <div id="plano-resultado" style="display:none; max-width:600px;"></div>
+      </div>
+
+      <div class="tab-panel" id="escola-mapa">
+        <div style="max-width:700px">
+          <div class="quiz-setup">
+            <h3 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:16px;">🧠 Resumo + Mapa Mental</h3>
+            <div class="form-grid" style="margin-bottom:20px">
+              <div class="form-group">
+                <label>MATÉRIA</label>
+                <select id="mapa-materia">
+                  <option>Matemática</option><option>Português</option><option>História</option>
+                  <option>Biologia</option><option>Física</option><option>Química</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>CONTEÚDO</label>
+                <input type="text" id="mapa-conteudo" placeholder="Ex: Funções">
+              </div>
+            </div>
+            <button class="btn" onclick="gerarMapa()">🗺️ Gerar Mapa Mental</button>
+          </div>
+          <div id="mapa-resultado" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VESTIBULAR -->
+    <div class="page" id="p-vestibular">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'vest-banco')">📊 Banco de Questões</button>
+        <button class="tab" onclick="switchTab(this,'vest-simulado')">🧠 Simulado Completo</button>
+      </div>
+
+      <div class="tab-panel active" id="vest-banco">
+        <div class="quiz-container">
+          <div class="section-title">Filtrar por área</div>
+          <div class="chips" id="vest-chips">
+            <span class="chip active" onclick="selectChip(this,'todas')">Todas</span>
+            <span class="chip" onclick="selectChip(this,'mat')">Matemática</span>
+            <span class="chip" onclick="selectChip(this,'port')">Português</span>
+            <span class="chip" onclick="selectChip(this,'cnh')">Ciências da Natureza</span>
+            <span class="chip" onclick="selectChip(this,'chh')">Ciências Humanas</span>
+            <span class="chip" onclick="selectChip(this,'red')">Redação ENEM</span>
+          </div>
+          <div id="vest-banco-questions">
+            <button class="btn" onclick="startVestBanco()">▶ Iniciar Banco de Questões</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="vest-simulado">
+        <div class="quiz-container">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;max-width:500px;margin-bottom:24px" id="simulado-start-card">
+            <div style="font-size:48px;margin-bottom:16px">🧠</div>
+            <h2 style="font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:10px">Simulado Completo</h2>
+            <p style="color:var(--muted);margin-bottom:24px;font-size:14px">30 questões • Cronometrado • Resultado por área • Estilo ENEM</p>
+            <button class="btn" style="font-size:16px;padding:14px 32px" onclick="startSimulado()">🚀 Começar Simulado</button>
+          </div>
+          <div id="simulado-area" style="display:none"></div>
+          <div id="simulado-result" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REDAÇÃO -->
+    <div class="page" id="p-redacao">
+      <div class="essay-container">
+        <div class="section-title">✍️ Ferramenta de Redação</div>
+
+        <div style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <span style="font-size:13px;color:var(--muted)">Tema sugerido:</span>
+            <div id="tema-display" style="background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.3);color:var(--accent);padding:6px 14px;border-radius:99px;font-size:13px;font-weight:600">Os impactos das redes sociais na saúde mental dos jovens</div>
+            <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="novoTema()">🔄 Novo tema</button>
+          </div>
+        </div>
+
+        <div class="structure-guide">
+          <div class="struct-part">
+            <div class="s-num">01</div>
+            <h4>Introdução</h4>
+            <p>Apresente o tema e a sua tese. Contextualize o leitor. Aproximadamente 7 linhas.</p>
+          </div>
+          <div class="struct-part">
+            <div class="s-num">02</div>
+            <h4>Desenvolvimento</h4>
+            <p>2 parágrafos com argumentos e embasamento. Use dados e citações. 14 linhas.</p>
+          </div>
+          <div class="struct-part">
+            <div class="s-num">03</div>
+            <h4>Conclusão</h4>
+            <p>Proposta de intervenção detalhada. Retome a tese. Aproximadamente 7 linhas.</p>
+          </div>
+        </div>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">Sua Redação</h3>
+            <div id="word-target" style="font-size:12px;color:var(--muted)">Meta: 25–30 linhas</div>
+          </div>
+          <textarea class="essay-area" id="essay-text" placeholder="Escreva sua redação aqui..." oninput="updateEssayCount()"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+            <div class="essay-count" id="essay-count">0 palavras • 0 linhas</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline" onclick="clearEssay()">🗑️ Limpar</button>
+              <button class="btn" onclick="salvarRedacao()">💾 Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TCC -->
+    <div class="page" id="p-tcc">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'tcc-gerador')">📄 Gerador de Estrutura</button>
+        <button class="tab" onclick="switchTab(this,'tcc-abnt')">📋 Checklist ABNT</button>
+      </div>
+      <div class="tab-panel active" id="tcc-gerador" style="max-width:700px">
+        <div class="tcc-section">
+          <h3>🎯 Tema</h3>
+          <textarea placeholder="Qual é o tema do seu TCC? Ex: O impacto da inteligência artificial na educação básica brasileira" id="tcc-tema"></textarea>
+        </div>
+        <div class="tcc-section">
+          <h3>❓ Problema</h3>
+          <textarea placeholder="Qual problema sua pesquisa quer resolver?" id="tcc-problema"></textarea>
+        </div>
+        <div class="tcc-section">
+          <h3>💡 Justificativa</h3>
+          <textarea placeholder="Por que este tema é relevante e importante?" id="tcc-just"></textarea>
+        </div>
+        <div class="tcc-section">
+          <h3>🎯 Objetivo Geral</h3>
+          <textarea placeholder="O que você quer alcançar com a pesquisa?" id="tcc-obj"></textarea>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px">
+          <button class="btn" onclick="gerarTCC()">✨ Gerar Estrutura Completa</button>
+          <button class="btn btn-outline" onclick="limparTCC()">🗑️ Limpar</button>
+        </div>
+        <div id="tcc-output" style="display:none;margin-top:24px"></div>
+      </div>
+      <div class="tab-panel" id="tcc-abnt" style="max-width:600px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px">
+          <h3 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:20px">📋 Checklist ABNT</h3>
+          <ul class="abnt-list" id="abnt-list"></ul>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <span id="abnt-progress-text" style="font-size:13px;color:var(--muted)">0 de 12 itens concluídos</span>
+            <button class="btn btn-outline" onclick="resetABNT()">↩ Resetar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIBLICO -->
+    <div class="page" id="p-biblico">
+      <!-- Versículo do dia -->
+      <div class="verse-card" id="versiculo-card">
+        <div class="verse-text" id="versiculo-text">"Porque eu bem sei os pensamentos que tenho a vosso respeito, diz o Senhor; pensamentos de paz e não de mal, para vos dar um futuro e uma esperança."</div>
+        <div class="verse-ref" id="versiculo-ref">— Jeremias 29:11</div>
+        <div style="margin-top:16px;padding:14px;background:rgba(108,99,255,0.08);border-radius:10px;font-size:14px;color:var(--muted);line-height:1.6" id="versiculo-comentario">
+          Este versículo nos lembra que Deus tem planos específicos e bons para cada um de nós, mesmo quando não conseguimos enxergar o caminho à nossa frente.
+        </div>
+        <div style="margin-top:12px;padding:12px;background:rgba(255,101,132,0.08);border-radius:10px;border-left:3px solid var(--accent2)">
+          <strong style="font-size:12px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.5px">Pergunta reflexiva:</strong>
+          <p style="font-size:14px;color:var(--text);margin-top:6px" id="versiculo-pergunta">Em que área da sua vida você precisa confiar mais nos planos de Deus hoje?</p>
+        </div>
+        <button class="btn btn-outline" style="margin-top:16px;font-size:12px" onclick="novoVersiculo()">🔄 Novo versículo</button>
+      </div>
+
+      <div class="grid-2">
+        <!-- Plano de leitura -->
+        <div>
+          <div class="section-title">📖 Plano de Leitura</div>
+          <div class="reading-plan">
+            <div class="plan-header">
+              <h3>📅 Bíblia em 1 Ano</h3>
+              <span class="plan-badge">✅ 68% concluído</span>
+            </div>
+            <div class="plan-progress">
+              <div class="p-bar"><div class="p-fill" style="width:68%"></div></div>
+              <span class="p-pct">68%</span>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Hoje: Gênesis 10-12 • Salmos 3</p>
+            <button class="btn" style="font-size:13px;padding:10px 20px" onclick="marcarLeitura()">✅ Marcar como lido</button>
+          </div>
+          <div class="reading-plan" style="margin-top:12px">
+            <div class="plan-header">
+              <h3>⚡ Plano 30 dias</h3>
+              <span class="plan-badge">🔥 12/30</span>
+            </div>
+            <div class="plan-progress">
+              <div class="p-bar"><div class="p-fill" style="width:40%"></div></div>
+              <span class="p-pct">40%</span>
+            </div>
+            <p style="font-size:13px;color:var(--muted)">Evangelhos em foco</p>
+          </div>
+        </div>
+
+        <!-- Reflexão -->
+        <div>
+          <div class="section-title">✍️ Área de Reflexão</div>
+          <div class="reflection-area">
+            <h3>📌 O que aprendi hoje</h3>
+            <textarea placeholder="Escreva sua reflexão sobre o estudo de hoje..." id="reflect-aprendeu"></textarea>
+          </div>
+          <div class="reflection-area">
+            <h3>🎯 Aplicação prática</h3>
+            <textarea placeholder="Como vou aplicar isso na minha vida?" id="reflect-aplica"></textarea>
+          </div>
+          <button class="btn" style="font-size:13px" onclick="salvarReflexao()">💾 Salvar reflexão</button>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:24px">🧠 Quiz Bíblico</div>
+      <div class="chips" id="livro-chips">
+        <span class="chip active" onclick="selectChip(this,'genesis');startQuizBiblico('genesis')">Gênesis</span>
+        <span class="chip" onclick="selectChip(this,'exodo');startQuizBiblico('exodo')">Êxodo</span>
+        <span class="chip" onclick="selectChip(this,'salmos');startQuizBiblico('salmos')">Salmos</span>
+        <span class="chip" onclick="selectChip(this,'evangelhos');startQuizBiblico('evangelhos')">Evangelhos</span>
+        <span class="chip" onclick="selectChip(this,'apocalipse');startQuizBiblico('apocalipse')">Apocalipse</span>
+      </div>
+      <div id="quiz-biblico-area" class="quiz-container"></div>
+    </div>
+
+    <!-- PESSOAL -->
+    <div class="page" id="p-pessoal">
+      <div class="section-title">📅 Sequência desta semana</div>
+      <div class="streak-bar" id="streak-bar"></div>
+
+      <div class="section-title">✅ Hábitos de Hoje</div>
+      <div class="habit-grid" id="habit-grid">
+        <!-- preenchido pelo JS -->
+      </div>
+
+      <div class="section-title">🎯 Minhas Metas</div>
+      <div class="grid-3" style="margin-bottom:24px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:20px;margin-bottom:8px">🗓️</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.5px">META ANUAL</div>
+          <input type="text" id="meta-anual" placeholder="Ex: Passar no ENEM" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" oninput="salvarMeta('anual', this.value)">
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:20px;margin-bottom:8px">📆</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.5px">META MENSAL</div>
+          <input type="text" id="meta-mensal" placeholder="Ex: Terminar módulo de Física" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" oninput="salvarMeta('mensal', this.value)">
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:20px;margin-bottom:8px">📋</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.5px">META SEMANAL</div>
+          <input type="text" id="meta-semanal" placeholder="Ex: Resolver 50 questões" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" oninput="salvarMeta('semanal', this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- POMODORO -->
+    <div class="page" id="p-pomodoro">
+      <div class="pomodoro-card">
+        <div class="pomo-modes">
+          <button class="pomo-mode-btn active" onclick="setPomoMode(this,25,5,'Foco')">Foco 25min</button>
+          <button class="pomo-mode-btn" onclick="setPomoMode(this,50,10,'Foco longo')">Foco 50min</button>
+          <button class="pomo-mode-btn" onclick="setPomoMode(this,5,0,'Pausa')">Pausa 5min</button>
+        </div>
+        <div class="pomo-circle">
+          <svg class="pomo-svg" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="100" stroke="var(--border)" stroke-width="6" fill="none"/>
+            <circle class="pomo-circle-fill" id="pomo-arc" cx="110" cy="110" r="100"/>
+          </svg>
+          <div class="pomo-time" id="pomo-display">25:00</div>
+          <div class="pomo-label" id="pomo-label">Pronto para focar?</div>
+        </div>
+        <div class="pomo-controls">
+          <button class="btn btn-outline" onclick="resetPomo()">↩ Reset</button>
+          <button class="btn" id="pomo-btn" onclick="togglePomo()" style="min-width:100px">▶ Iniciar</button>
+        </div>
+        <div style="margin-top:24px;padding:16px;background:var(--surface2);border-radius:12px;text-align:left">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">📊 SESSÃO ATUAL</div>
+          <div style="display:flex;gap:24px">
+            <div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800" id="pomo-sessoes">0</div><div style="font-size:11px;color:var(--muted)">Pomodoros</div></div>
+            <div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800" id="pomo-total-min">0</div><div style="font-size:11px;color:var(--muted)">Min focados</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let state = {
+  points: 0,
+  streak: 7,
+  correctTotal: 0,
+  habits: {},
+  metas: {},
+  pomoCycles: 0,
+  pomoTotalMin: 0,
+};
+
+// Load from localStorage
+function loadState() {
+  const saved = localStorage.getItem('educafoco_state');
+  if (saved) {
+    try { state = {...state, ...JSON.parse(saved)}; } catch(e) {}
+  }
+  updatePointsDisplay();
+  loadHabits();
+  loadMetas();
+}
+
+function saveState() {
+  localStorage.setItem('educafoco_state', JSON.stringify(state));
+}
+
+// ===== NAVIGATION =====
+function goTo(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelector('#p-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard: 'Dashboard',
+    escola: 'Estudos Escolares',
+    vestibular: 'Vestibular & ENEM',
+    redacao: 'Redação',
+    tcc: 'TCC & Faculdade',
+    biblico: 'Estudos Bíblicos',
+    pessoal: 'Desenvolvimento Pessoal',
+    pomodoro: 'Timer Pomodoro',
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+
+  if (page === 'pessoal') renderHabits();
+  if (page === 'biblico') startQuizBiblico('genesis');
+  if (page === 'tcc') renderABNT();
+}
+
+// ===== TABS =====
+function switchTab(btn, panelId) {
+  const tabs = btn.closest('.tabs').querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const panels = btn.closest('.page').querySelectorAll('.tab-panel');
+  panels.forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(panelId);
+  if (panel) panel.classList.add('active');
+}
+
+function selectChip(el, val) {
+  el.closest('.chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  if (isDark) {
+    html.setAttribute('data-theme','light');
+    localStorage.setItem('ef_theme','light');
+    document.querySelector('.theme-btn').textContent = '☀️';
+  } else {
+    html.removeAttribute('data-theme');
+    localStorage.setItem('ef_theme','dark');
+    document.querySelector('.theme-btn').textContent = '🌙';
+  }
+}
+
+// ===== POINTS =====
+function addPoints(n) {
+  state.points += n;
+  state.correctTotal++;
+  document.getElementById('dash-pts').textContent = state.points;
+  document.getElementById('dash-correct').textContent = state.correctTotal;
+  updatePointsDisplay();
+  saveState();
+}
+
+function updatePointsDisplay() {
+  document.getElementById('pointsBadge').textContent = '⭐ ' + state.points + ' pts';
+  const level = Math.floor(state.points / 100) + 1;
+  const xpInLevel = state.points % 100;
+  document.getElementById('levelNum').textContent = level;
+  document.getElementById('xpText').textContent = xpInLevel + ' / 100 XP';
+  document.getElementById('xpFill').style.width = xpInLevel + '%';
+}
+
+// ===== TOAST =====
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.innerHTML = (type==='success'?'✅ ':'❌ ') + msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== QUIZ DATA =====
+const questions = {
+  Matemática: [
+    { text: 'Qual é o valor de x em: 2x + 4 = 12?', opts: ['x = 2','x = 4','x = 6','x = 8'], ans: 1, diff:'easy', exp:'2x = 8, portanto x = 4.' },
+    { text: 'A soma dos ângulos internos de um triângulo é:', opts: ['90°','180°','270°','360°'], ans: 1, diff:'easy', exp:'Todo triângulo tem a soma dos ângulos internos igual a 180°.' },
+    { text: 'Se f(x) = x² - 3x + 2, qual é f(3)?', opts: ['2','0','6','4'], ans: 0, diff:'medium', exp:'f(3) = 9 - 9 + 2 = 2.' },
+    { text: 'Quantos são os divisores do número 12?', opts: ['4','5','6','3'], ans: 2, diff:'medium', exp:'Divisores: 1,2,3,4,6,12. Total: 6.' },
+    { text: 'Log₂(32) é igual a:', opts: ['4','5','6','3'], ans: 1, diff:'hard', exp:'2⁵ = 32, então log₂(32) = 5.' },
+  ],
+  Português: [
+    { text: 'Qual a classe gramatical de "belo"?', opts: ['Substantivo','Adjetivo','Advérbio','Verbo'], ans: 1, diff:'easy', exp:'"Belo" é um adjetivo, pois caracteriza um substantivo.' },
+    { text: 'Assinale a frase com sujeito composto:', opts: ['Eu estudei muito.','Pedro e Ana vieram.','Chove muito aqui.','Ela cantou.'], ans: 1, diff:'medium', exp:'Pedro e Ana = sujeito composto (dois núcleos).' },
+    { text: 'Identifique a oração subordinada substantiva:', opts: ['"Quando cheguei"','"Que você venha"','"Como estudava"','"Onde morava"'], ans: 1, diff:'hard', exp:'Oração substantiva funciona como substantivo na frase.' },
+  ],
+  História: [
+    { text: 'Em que ano foi proclamada a República do Brasil?', opts: ['1822','1889','1888','1891'], ans: 1, diff:'easy', exp:'A República foi proclamada em 15 de novembro de 1889.' },
+    { text: 'A Revolução Francesa ocorreu em:', opts: ['1776','1789','1815','1799'], ans: 1, diff:'easy', exp:'A Revolução Francesa começou em 1789 com a queda da Bastilha.' },
+    { text: 'Quem foi o líder da Revolução Cubana?', opts: ['Che Guevara','Fidel Castro','Raúl Castro','Hugo Chávez'], ans: 1, diff:'medium', exp:'Fidel Castro liderou a revolução que tomou o poder em 1959.' },
+  ],
+  Biologia: [
+    { text: 'Onde ocorre a fotossíntese?', opts: ['Mitocôndria','Cloroplasto','Núcleo','Ribossomo'], ans: 1, diff:'easy', exp:'A fotossíntese ocorre nos cloroplastos das células vegetais.' },
+    { text: 'Quantos cromossomos tem o ser humano?', opts: ['44','46','48','23'], ans: 1, diff:'easy', exp:'Humanos têm 46 cromossomos (23 pares).' },
+    { text: 'A respiração celular aeróbica acontece na:', opts: ['Membrana plasmática','Mitocôndria','Vacúolo','Lisossomo'], ans: 1, diff:'medium', exp:'A respiração aeróbica ocorre nas mitocôndrias.' },
+  ],
+  Física: [
+    { text: 'A fórmula da Segunda Lei de Newton é:', opts: ['E=mc²','F=m·a','V=d/t','P=m·g'], ans: 1, diff:'easy', exp:'F = m·a: força = massa × aceleração.' },
+    { text: 'Qual a unidade de medida da força?', opts: ['Joule','Newton','Watt','Pascal'], ans: 1, diff:'easy', exp:'A força é medida em Newtons (N).' },
+    { text: 'Um objeto em MRU possui aceleração:', opts: ['Positiva','Negativa','Crescente','Nula'], ans: 3, diff:'medium', exp:'No MRU a velocidade é constante, logo aceleração = 0.' },
+  ],
+  Química: [
+    { text: 'O número atômico do oxigênio é:', opts: ['6','7','8','16'], ans: 2, diff:'easy', exp:'O oxigênio tem número atômico 8 (8 prótons).' },
+    { text: 'Qual é o pH de uma solução neutra?', opts: ['0','7','14','1'], ans: 1, diff:'easy', exp:'Solução neutra tem pH = 7.' },
+    { text: 'CH₄ é a fórmula molecular do:', opts: ['Etano','Propano','Metano','Butano'], ans: 2, diff:'medium', exp:'CH₄ = metano, o hidrocarboneto mais simples.' },
+  ],
+};
+
+const enemQuestions = [
+  { text: '(ENEM 2023) Uma solução aquosa de NaCl tem pH = 7. Ao adicionar HCl, o pH irá:', opts: ['Aumentar','Diminuir','Permanecer igual','Depende da temperatura'], ans: 1, diff:'medium', exp:'HCl é ácido, diminui o pH da solução.', area:'cnh' },
+  { text: '(ENEM 2022) Sobre a Proclamação da República do Brasil, é correto afirmar:', opts: ['Foi feita pelo povo','Ocorreu em 1889','Foi pacífica e popular','Aboliu a escravidão'], ans: 1, diff:'medium', exp:'A República foi proclamada em 15 de novembro de 1889 por um golpe militar.', area:'chh' },
+  { text: '(ENEM 2023) O movimento de deriva dos continentes foi proposto por:', opts: ['Darwin','Wegener','Newton','Lamarck'], ans: 1, diff:'easy', exp:'Alfred Wegener propôs a teoria da deriva continental em 1912.', area:'cnh' },
+  { text: '(ENEM 2022) A função f(x) = 2x + 3 é do tipo:', opts: ['Quadrática','Linear','Exponencial','Logarítmica'], ans: 1, diff:'easy', exp:'f(x) = 2x + 3 é uma função linear (1º grau).', area:'mat' },
+  { text: '(ENEM 2023) Identifique o recurso de linguagem: "A vida é um palco."', opts: ['Comparação','Metáfora','Personificação','Hipérbole'], ans: 1, diff:'medium', exp:'Metáfora: identificação direta entre dois termos sem "como".', area:'port' },
+];
+
+// ===== ESCOLA QUIZ =====
+let escolaQuiz = { questions: [], current: 0, correct: 0, answered: false };
+
+function startEscolaQuiz() {
+  const mat = document.getElementById('escola-materia').value;
+  const dif = document.getElementById('escola-dif').value;
+  const difMap = { easy:'easy', medium:'medium', hard:'hard' };
+  const qs = (questions[mat] || []).filter(q => !dif || q.diff === difMap[dif]);
+  if (!qs.length) { showToast('Nenhuma questão encontrada!','error'); return; }
+  escolaQuiz = { questions: [...qs].sort(() => Math.random()-0.5), current: 0, correct: 0, answered: false };
+  document.getElementById('escola-setup').style.display = 'none';
+  document.getElementById('escola-quiz-area').style.display = 'block';
+  renderEscolaQuestion();
+}
+
+function renderEscolaQuestion() {
+  const q = escolaQuiz.questions[escolaQuiz.current];
+  if (!q) { endEscolaQuiz(); return; }
+  escolaQuiz.answered = false;
+  const difLabels = { easy:'🟢 Fácil', medium:'🟡 Médio', hard:'🔴 Difícil' };
+  const difClass = { easy:'diff-easy', medium:'diff-medium', hard:'diff-hard' };
+  const letters = ['A','B','C','D','E'];
+  const optsHtml = q.opts.map((o,i) => `
+    <button class="option-btn" onclick="answerEscola(this,${i})">
+      <span class="option-letter">${letters[i]}</span>${o}
+    </button>`).join('');
+  document.getElementById('escola-q').innerHTML = `
+    <div class="question-meta">
+      <span class="q-num">Questão ${escolaQuiz.current+1}/${escolaQuiz.questions.length}</span>
+      <span class="q-diff ${difClass[q.diff]}">${difLabels[q.diff]}</span>
+    </div>
+    <div class="question-text">${q.text}</div>
+    <div class="options">${optsHtml}</div>
+    <div class="feedback-box" id="escola-feedback"></div>
+  `;
+  document.getElementById('escola-next-btn').disabled = true;
+  document.getElementById('escola-score-display').textContent = `Acertos: ${escolaQuiz.correct}/${escolaQuiz.current}`;
+}
+
+
+
+function answerEscola(btn, chosen) {
+  if (escolaQuiz.answered) return;
+  escolaQuiz.answered = true;
+  const q = escolaQuiz.questions[escolaQuiz.current];
+  const correct = q.ans;
+  const exp = q.exp;
+  const allBtns = btn.closest('.options').querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('escola-feedback');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    fb.className = 'feedback-box correct show';
+    fb.innerHTML = '✅ Correto! ' + exp;
+    escolaQuiz.correct++;
+    addPoints(10);
+    showToast('+10 pontos! 🎉');
+  } else {
+    btn.classList.add('wrong');
+    allBtns[correct].classList.add('correct');
+    fb.className = 'feedback-box wrong show';
+    fb.innerHTML = '❌ Incorreto. ' + exp;
+  }
+  document.getElementById('escola-next-btn').disabled = false;
+  document.getElementById('escola-score-display').textContent = `Acertos: ${escolaQuiz.correct}/${escolaQuiz.current+1}`;
+}
+
+
+
+function nextEscolaQuestion() {
+  escolaQuiz.current++;
+  renderEscolaQuestion();
+}
+
+function endEscolaQuiz() {
+  const total = escolaQuiz.questions.length;
+  const correct = escolaQuiz.correct;
+  const pct = total ? Math.round(correct/total*100) : 0;
+  document.getElementById('escola-quiz-area').style.display = 'none';
+  document.getElementById('escola-setup').style.display = 'block';
+  showToast(`Resultado: ${correct}/${total} (${pct}%)`, pct >= 60 ? 'success' : 'error');
+}
+
+// ===== PLANO DE ESTUDO =====
+function gerarPlano() {
+  const mat = document.getElementById('plano-materia').value;
+  const conteudo = document.getElementById('plano-conteudo').value || 'Conteúdo geral';
+  const dataStr = document.getElementById('plano-data').value;
+  if (!dataStr) { showToast('Selecione a data da prova!','error'); return; }
+  const prova = new Date(dataStr + 'T00:00:00');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dias = Math.max(1, Math.ceil((prova - hoje) / 86400000));
+  const fases = ['Revisão inicial e leitura','Exercícios básicos','Questões intermediárias','Simulado e revisão final'];
+  const diasPorFase = Math.max(1, Math.floor(dias/4));
+  let html = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-top:16px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px">📅 Plano para ${mat}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Conteúdo: ${conteudo} • ${dias} dias até a prova</p>
+  `;
+  fases.forEach((fase, i) => {
+    const d = new Date(hoje); d.setDate(d.getDate() + i*diasPorFase);
+    const end = new Date(hoje); end.setDate(end.getDate() + (i+1)*diasPorFase - 1);
+    html += `<div class="plan-day">
+      <div class="plan-day-num">F${i+1}</div>
+      <div class="plan-day-info">
+        <strong>${fase}</strong>
+        <span>${formatDate(d)} → ${formatDate(end)}</span>
+      </div>
+      <div class="plan-day-time">~${Math.ceil(diasPorFase * 1.5)}h</div>
+    </div>`;
+  });
+  html += `<div style="margin-top:16px;padding:14px;background:rgba(108,99,255,0.08);border-radius:10px;font-size:13px;color:var(--muted)">
+    💡 <strong style="color:var(--text)">Dica:</strong> Use o Pomodoro para sessões de 25min com intervalos de 5min. Revise sempre o que errou!
+  </div></div>`;
+  document.getElementById('plano-resultado').innerHTML = html;
+  document.getElementById('plano-resultado').style.display = 'block';
+  addPoints(5);
+  showToast('Plano gerado! +5 pontos 📅');
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+}
+
+// ===== MAPA MENTAL =====
+const mapasData = {
+  'Matemática': {
+    center: '📐 Matemática',
+    branches: [
+      { name: 'Álgebra', subs: ['Equações 1º grau', 'Equações 2º grau', 'Sistemas', 'Progressões'] },
+      { name: 'Geometria', subs: ['Plana', 'Espacial', 'Analítica', 'Trigonometria'] },
+      { name: 'Análise', subs: ['Funções', 'Limites', 'Derivadas', 'Integrais'] },
+      { name: 'Estatística', subs: ['Média/Mediana', 'Moda', 'Probabilidade', 'Gráficos'] },
+    ]
+  },
+  'Português': {
+    center: '📖 Português',
+    branches: [
+      { name: 'Gramática', subs: ['Morfologia', 'Sintaxe', 'Semântica', 'Ortografia'] },
+      { name: 'Literatura', subs: ['Modernismo', 'Realismo', 'Romantismo', 'Contemporânea'] },
+      { name: 'Redação', subs: ['Dissertação', 'Argumentação', 'Proposta', 'Coesão'] },
+      { name: 'Interpretação', subs: ['Inferência', 'Vocabulário', 'Ironias', 'Figuras de linguagem'] },
+    ]
+  }
+};
+
+function gerarMapa() {
+  const mat = document.getElementById('mapa-materia').value;
+  const conteudo = document.getElementById('mapa-conteudo').value;
+  const mapa = mapasData[mat] || {
+    center: '📚 ' + mat,
+    branches: [
+      { name: 'Conceitos básicos', subs: ['Fundamentos', 'Definições', 'Exemplos', 'Aplicações'] },
+      { name: 'Teoria', subs: ['Princípios', 'Leis', 'Fórmulas', 'Demonstrações'] },
+      { name: 'Prática', subs: ['Exercícios', 'Questões', 'Simulados', 'Revisão'] },
+      { name: 'Aprofundamento', subs: ['ENEM', 'Vestibular', 'Olimpíadas', 'Extensão'] },
+    ]
+  };
+
+  const colors = ['#6c63ff','#ff6584','#43e97b','#f9ca24'];
+  let html = `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-top:16px">
+    <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:24px">${mapa.center}${conteudo?' — '+conteudo:''}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">`;
+  mapa.branches.forEach((b, i) => {
+    html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;border-top:3px solid ${colors[i]}">
+      <div style="font-weight:700;font-size:14px;color:${colors[i]};margin-bottom:10px">● ${b.name}</div>
+      <ul style="list-style:none">
+        ${b.subs.map(s => `<li style="font-size:13px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border)">◦ ${s}</li>`).join('')}
+      </ul>
+    </div>`;
+  });
+  html += `</div><div style="margin-top:16px;text-align:center;color:var(--muted);font-size:12px">💡 Estude cada ramo separadamente e conecte os conceitos</div></div>`;
+  document.getElementById('mapa-resultado').innerHTML = html;
+  document.getElementById('mapa-resultado').style.display = 'block';
+  addPoints(5);
+  showToast('Mapa mental gerado! 🧠');
+}
+
+// ===== VESTIBULAR =====
+let vestQuiz = { qs: [], current: 0, correct: 0, answered: false };
+let simuladoData = { qs: [], current: 0, correct: 0, answered: false, timer: null, totalTime: 0 };
+
+function startVestBanco() {
+  vestQuiz = { qs: [...enemQuestions].sort(() => Math.random()-0.5), current: 0, correct: 0, answered: false };
+  renderVestQuestion();
+}
+
+function renderVestQuestion() {
+  const q = vestQuiz.qs[vestQuiz.current];
+  if (!q) {
+    const pct = Math.round(vestQuiz.correct/vestQuiz.qs.length*100);
+    document.getElementById('vest-banco-questions').innerHTML = `
+      <div class="result-card">
+        <div class="result-stars">${pct>=80?'🏆':pct>=60?'🥈':'📚'}</div>
+        <p style="color:var(--muted)">Resultado do Banco de Questões</p>
+        <div class="result-score" style="color:${pct>=60?'var(--accent3)':'var(--accent2)'}">${pct}%</div>
+        <p style="color:var(--muted);margin-bottom:24px">${vestQuiz.correct}/${vestQuiz.qs.length} acertos</p>
+        <button class="btn" onclick="startVestBanco()">🔄 Tentar novamente</button>
+      </div>`;
+    return;
+  }
+  vestQuiz.answered = false;
+  const letters = ['A','B','C','D'];
+  const difClass = { easy:'diff-easy', medium:'diff-medium', hard:'diff-hard' };
+  const difLabel = { easy:'🟢 Fácil', medium:'🟡 Médio', hard:'🔴 Difícil' };
+  document.getElementById('vest-banco-questions').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="q-num">Questão ${vestQuiz.current+1}/${vestQuiz.qs.length}</span>
+        <span class="q-diff ${difClass[q.diff]}">${difLabel[q.diff]}</span>
+      </div>
+      <div class="question-text">${q.text}</div>
+      <div class="options">${q.opts.map((o,i) => `
+        <button class="option-btn" onclick="answerVest(this,${i})">
+          <span class="option-letter">${letters[i]}</span>${o}
+        </button>`).join('')}
+      </div>
+      <div class="feedback-box" id="vest-feedback"></div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <button class="btn" id="vest-next" onclick="nextVest()" disabled>Próxima →</button>
+      <span style="margin-left:auto;font-size:13px;color:var(--muted)">Acertos: ${vestQuiz.correct}/${vestQuiz.current}</span>
+    </div>`;
+}
+
+function answerVest(btn, chosen) {
+  if (vestQuiz.answered) return;
+  vestQuiz.answered = true;
+  const q = vestQuiz.qs[vestQuiz.current];
+  const correct = q.ans;
+  const exp = q.exp;
+  btn.closest('.options').querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('vest-feedback');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    fb.className = 'feedback-box correct show';
+    fb.innerHTML = '✅ Correto! ' + exp;
+    vestQuiz.correct++;
+    addPoints(15);
+    showToast('+15 pontos! 🎓');
+  } else {
+    btn.classList.add('wrong');
+    btn.closest('.options').querySelectorAll('.option-btn')[correct].classList.add('correct');
+    fb.className = 'feedback-box wrong show';
+    fb.innerHTML = '❌ Incorreto. ' + exp;
+  }
+  document.getElementById('vest-next').disabled = false;
+}
+
+function nextVest() { vestQuiz.current++; renderVestQuestion(); }
+
+// ===== SIMULADO =====
+function startSimulado() {
+  const all = [...enemQuestions, ...enemQuestions, ...enemQuestions, ...enemQuestions, ...enemQuestions, ...enemQuestions];
+  simuladoData = {
+    qs: all.sort(() => Math.random()-0.5).slice(0,10),
+    current: 0, correct: 0, answered: false,
+    startTime: Date.now(), timerInterval: null
+  };
+  document.getElementById('simulado-start-card').style.display = 'none';
+  renderSimuladoQuestion();
+}
+
+function renderSimuladoQuestion() {
+  const q = simuladoData.qs[simuladoData.current];
+  if (!q) { showSimuladoResult(); return; }
+  simuladoData.answered = false;
+  const letters = ['A','B','C','D'];
+  document.getElementById('simulado-area').style.display = 'block';
+  document.getElementById('simulado-area').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="q-num">Questão ${simuladoData.current+1}/${simuladoData.qs.length}</span>
+        <span class="q-diff diff-medium">⏱️ ${Math.floor((Date.now()-simuladoData.startTime)/60000)}min</span>
+      </div>
+      <div class="question-text">${q.text}</div>
+      <div class="options">${q.opts.map((o,i)=>`
+        <button class="option-btn" onclick="answerSimulado(this,${i})">
+          <span class="option-letter">${letters[i]}</span>${o}
+        </button>`).join('')}
+      </div>
+      <div class="feedback-box" id="sim-feedback"></div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn" id="sim-next" onclick="nextSimulado()" disabled>Próxima →</button>
+    </div>`;
+}
+
+function answerSimulado(btn, chosen) {
+  if (simuladoData.answered) return;
+  simuladoData.answered = true;
+  const q = simuladoData.qs[simuladoData.current];
+  const correct = q.ans;
+  const exp = q.exp;
+  btn.closest('.options').querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('sim-feedback');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    fb.className = 'feedback-box correct show';
+    fb.innerHTML = '✅ ' + exp;
+    simuladoData.correct++;
+    addPoints(20);
+  } else {
+    btn.classList.add('wrong');
+    btn.closest('.options').querySelectorAll('.option-btn')[correct].classList.add('correct');
+    fb.className = 'feedback-box wrong show';
+    fb.innerHTML = '❌ ' + exp;
+  }
+  document.getElementById('sim-next').disabled = false;
+}
+
+function nextSimulado() { simuladoData.current++; renderSimuladoQuestion(); }
+
+function showSimuladoResult() {
+  const total = simuladoData.qs.length;
+  const correct = simuladoData.correct;
+  const pct = Math.round(correct/total*100);
+  const mins = Math.floor((Date.now()-simuladoData.startTime)/60000);
+  document.getElementById('simulado-area').style.display = 'none';
+  document.getElementById('simulado-result').style.display = 'block';
+  document.getElementById('simulado-result').innerHTML = `
+    <div class="result-card">
+      <div class="result-stars">${pct>=80?'🏆':pct>=60?'🥈':'📚'}</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px">Resultado do Simulado</h2>
+      <div class="result-score" style="color:${pct>=60?'var(--accent3)':'var(--accent2)'}">${pct}%</div>
+      <p style="color:var(--muted);margin-bottom:8px">${correct} de ${total} questões corretas</p>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:24px">⏱️ Tempo: ${mins} minutos</p>
+      <p style="font-size:14px;padding:14px;background:rgba(108,99,255,0.1);border-radius:10px;margin-bottom:20px">
+        ${pct>=80?'🎉 Excelente! Continue assim!':pct>=60?'👍 Bom resultado! Revise os erros.':'📖 Continue estudando, você consegue!'}
+      </p>
+      <button class="btn" onclick="document.getElementById('simulado-result').style.display='none';document.getElementById('simulado-start-card').style.display='block'">🔄 Novo Simulado</button>
+    </div>`;
+  showToast(`Simulado concluído: ${pct}% de acerto!`, pct >= 60 ? 'success' : 'error');
+}
+
+// ===== REDAÇÃO =====
+const temas = [
+  'Os impactos das redes sociais na saúde mental dos jovens',
+  'Desafios do sistema educacional brasileiro na era digital',
+  'A importância da preservação ambiental para as futuras gerações',
+  'Violência doméstica e o papel do Estado na proteção das mulheres',
+  'Fake news: um desafio para a democracia brasileira',
+  'A influência da tecnologia no mercado de trabalho contemporâneo',
+  'Desigualdade social e o acesso à saúde no Brasil',
+  'A valorização dos povos indígenas na sociedade brasileira',
+];
+let temaIndex = 0;
+
+function novoTema() {
+  temaIndex = (temaIndex + 1) % temas.length;
+  document.getElementById('tema-display').textContent = temas[temaIndex];
+}
+
+function updateEssayCount() {
+  const text = document.getElementById('essay-text').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const lines = text.split('\n').length;
+  document.getElementById('essay-count').textContent = `${words} palavras • ${lines} linhas`;
+}
+
+function clearEssay() {
+  document.getElementById('essay-text').value = '';
+  updateEssayCount();
+}
+
+function salvarRedacao() {
+  localStorage.setItem('ef_redacao', document.getElementById('essay-text').value);
+  showToast('Redação salva! 💾');
+}
+
+// ===== TCC =====
+function gerarTCC() {
+  const tema = document.getElementById('tcc-tema').value;
+  const problema = document.getElementById('tcc-problema').value;
+  const just = document.getElementById('tcc-just').value;
+  const obj = document.getElementById('tcc-obj').value;
+  if (!tema) { showToast('Preencha pelo menos o tema!','error'); return; }
+
+  const output = document.getElementById('tcc-output');
+  output.style.display = 'block';
+  output.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px">📄 Estrutura do TCC Gerada</h3>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${['Capa','Folha de Rosto','Dedicatória (opcional)','Agradecimentos (opcional)','Epígrafe (opcional)','Resumo + Palavras-chave','Abstract','Sumário','Introdução','Referencial Teórico','Metodologia','Resultados e Discussão','Conclusão','Referências Bibliográficas','Apêndices (se houver)','Anexos (se houver)'].map((item, i) => `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(108,99,255,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${i+1}</div>
+            <span style="font-size:14px">${item}</span>
+          </div>`).join('')}
+      </div>
+      ${tema ? `<div style="margin-top:20px;padding:16px;background:rgba(67,233,123,0.08);border:1px solid rgba(67,233,123,0.2);border-radius:10px;font-size:13px"><strong style="color:var(--accent3)">Tema:</strong> ${tema}</div>` : ''}
+      ${problema ? `<div style="margin-top:8px;padding:16px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;font-size:13px"><strong style="color:var(--accent)">Problema:</strong> ${problema}</div>` : ''}
+    </div>`;
+  addPoints(10);
+  showToast('Estrutura TCC gerada! +10 pts 📄');
+}
+
+function limparTCC() {
+  ['tcc-tema','tcc-problema','tcc-just','tcc-obj'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tcc-output').style.display = 'none';
+}
+
+// ===== ABNT =====
+const abntItems = [
+  'Margens: 3cm (sup/esq), 2cm (inf/dir)',
+  'Fonte Times New Roman ou Arial, 12pt',
+  'Espaçamento entre linhas: 1,5',
+  'Parágrafos com recuo de 1,25cm',
+  'Páginas numeradas no canto superior direito',
+  'Capa com todos os elementos obrigatórios',
+  'Sumário com numeração correta',
+  'Citações curtas (até 3 linhas) entre aspas',
+  'Citações longas (acima 3 linhas) com recuo 4cm',
+  'Referências em ordem alfabética',
+  'Figuras e tabelas com título e fonte',
+  'Resumo com 150-500 palavras e palavras-chave',
+];
+
+let abntChecked = {};
+
+function renderABNT() {
+  const saved = localStorage.getItem('ef_abnt');
+  if (saved) try { abntChecked = JSON.parse(saved); } catch(e) {}
+  const list = document.getElementById('abnt-list');
+  if (!list) return;
+  list.innerHTML = abntItems.map((item, i) => `
+    <li onclick="toggleABNT(${i})">
+      <div class="abnt-check ${abntChecked[i] ? 'checked' : ''}">${abntChecked[i] ? '✓' : ''}</div>
+      <span style="${abntChecked[i] ? 'text-decoration:line-through;color:var(--muted)' : ''}">${item}</span>
+    </li>`).join('');
+  updateABNTProgress();
+}
+
+function toggleABNT(i) {
+  abntChecked[i] = !abntChecked[i];
+  localStorage.setItem('ef_abnt', JSON.stringify(abntChecked));
+  renderABNT();
+  if (abntChecked[i]) addPoints(2);
+}
+
+function updateABNTProgress() {
+  const done = Object.values(abntChecked).filter(Boolean).length;
+  const el = document.getElementById('abnt-progress-text');
+  if (el) el.textContent = `${done} de ${abntItems.length} itens concluídos`;
+}
+
+function resetABNT() {
+  abntChecked = {};
+  localStorage.removeItem('ef_abnt');
+  renderABNT();
+}
+
+// ===== BÍBLICO =====
+const versiculos = [
+  { text: '"Porque eu bem sei os pensamentos que tenho a vosso respeito, diz o Senhor; pensamentos de paz e não de mal, para vos dar um futuro e uma esperança."', ref: 'Jeremias 29:11', comentario: 'Este versículo nos lembra que Deus tem planos específicos e bons para cada um de nós.', pergunta: 'Em que área da sua vida você precisa confiar mais nos planos de Deus?' },
+  { text: '"Tudo posso naquele que me fortalece."', ref: 'Filipenses 4:13', comentario: 'A força não vem de nós mesmos, mas da fé que nos une a Cristo.', pergunta: 'Qual desafio você está enfrentando que precisa desta promessa hoje?' },
+  { text: '"O Senhor é o meu pastor; nada me faltará."', ref: 'Salmos 23:1', comentario: 'Davi expressa confiança total em Deus como seu guia e provedor.', pergunta: 'Como você tem experimentado o cuidado de Deus na sua vida?' },
+  { text: '"Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento."', ref: 'Provérbios 3:5', comentario: 'A sabedoria divina supera nosso entendimento limitado.', pergunta: 'Em alguma decisão atual, você tem buscado a orientação de Deus?' },
+];
+let versiculoIndex = 0;
+
+function novoVersiculo() {
+  versiculoIndex = (versiculoIndex + 1) % versiculos.length;
+  const v = versiculos[versiculoIndex];
+  document.getElementById('versiculo-text').textContent = v.text;
+  document.getElementById('versiculo-ref').textContent = '— ' + v.ref;
+  document.getElementById('versiculo-comentario').textContent = v.comentario;
+  document.getElementById('versiculo-pergunta').textContent = v.pergunta;
+}
+
+function marcarLeitura() {
+  addPoints(5);
+  showToast('Leitura marcada! +5 pts ✅');
+}
+
+function salvarReflexao() {
+  const a = document.getElementById('reflect-aprendeu').value;
+  const b = document.getElementById('reflect-aplica').value;
+  localStorage.setItem('ef_reflexao', JSON.stringify({aprendeu: a, aplica: b, data: new Date().toISOString()}));
+  addPoints(10);
+  showToast('Reflexão salva! +10 pts ✝️');
+}
+
+// Quiz bíblico
+const quizBiblico = {
+  genesis: [
+    { text: 'Quantos dias Deus levou para criar o mundo?', opts: ['5','6','7','8'], ans: 1, exp:'Deus criou o mundo em 6 dias e descansou no 7º (Gênesis 1).' },
+    { text: 'Qual foi o primeiro pecado da humanidade?', opts: ['Mentira','Roubo','Desobediência a Deus','Assassinato'], ans: 2, exp:'Adão e Eva desobedeceram a Deus ao comer o fruto proibido (Gênesis 3).' },
+  ],
+  exodo: [
+    { text: 'Quantas pragas Deus enviou ao Egito?', opts: ['7','9','10','12'], ans: 2, exp:'Foram 10 pragas enviadas ao Egito (Êxodo 7-12).' },
+    { text: 'Quem liderou os israelitas na saída do Egito?', opts: ['Aarão','Josué','Moisés','Calebe'], ans: 2, exp:'Moisés foi escolhido por Deus para libertar Israel do Egito (Êxodo 3).' },
+  ],
+  salmos: [
+    { text: 'Quem escreveu a maioria dos Salmos?', opts: ['Salomão','Moisés','Davi','Asafe'], ans: 2, exp:'Davi é creditado como autor de grande parte dos Salmos.' },
+    { text: 'Qual Salmo começa com "O Senhor é o meu pastor"?', opts: ['Salmo 1','Salmo 23','Salmo 91','Salmo 119'], ans: 1, exp:'O famoso Salmo 23 começa com "O Senhor é o meu pastor".' },
+  ],
+  evangelhos: [
+    { text: 'Em qual cidade Jesus nasceu?', opts: ['Nazaré','Jerusalém','Belém','Cafarnaum'], ans: 2, exp:'Jesus nasceu em Belém de Judá (Lucas 2:4-7).' },
+    { text: 'Quantos apóstolos Jesus escolheu?', opts: ['7','10','12','15'], ans: 2, exp:'Jesus escolheu 12 apóstolos para ministrar com Ele.' },
+  ],
+  apocalipse: [
+    { text: 'Quem escreveu o livro do Apocalipse?', opts: ['Paulo','Pedro','João','Tiago'], ans: 2, exp:'O apóstolo João escreveu o Apocalipse enquanto estava em Patmos.' },
+    { text: 'Quantas igrejas são mencionadas nos capítulos 2 e 3?', opts: ['5','6','7','8'], ans: 2, exp:'Sete igrejas são mencionadas: Éfeso, Esmirna, Pérgamo, Tiatira, Sardes, Filadélfia e Laodiceia.' },
+  ],
+};
+
+let quizBiblicoState = { qs: [], current: 0, correct: 0, answered: false, livro: '' };
+
+function startQuizBiblico(livro) {
+  quizBiblicoState = { qs: [...quizBiblico[livro]], current: 0, correct: 0, answered: false, livro };
+  renderQuizBiblico();
+}
+
+function renderQuizBiblico() {
+  const q = quizBiblicoState.qs[quizBiblicoState.current];
+  const area = document.getElementById('quiz-biblico-area');
+  if (!q) {
+    const pct = Math.round(quizBiblicoState.correct/quizBiblicoState.qs.length*100);
+    area.innerHTML = `<div class="result-card" style="max-width:400px">
+      <div style="font-size:40px">${pct>=80?'🏆':pct>=50?'✝️':'📖'}</div>
+      <div class="result-score" style="color:${pct>=50?'var(--accent3)':'var(--accent2)'}">${pct}%</div>
+      <p style="color:var(--muted);margin-bottom:20px">${quizBiblicoState.correct}/${quizBiblicoState.qs.length} acertos</p>
+      <button class="btn" onclick="startQuizBiblico('${quizBiblicoState.livro}')">🔄 Repetir</button>
+    </div>`;
+    return;
+  }
+  quizBiblicoState.answered = false;
+  const letters = ['A','B','C','D'];
+  area.innerHTML = `
+    <div class="question-card" style="max-width:600px">
+      <div class="question-meta">
+        <span class="q-num">${quizBiblicoState.livro.charAt(0).toUpperCase()+quizBiblicoState.livro.slice(1)} • Q${quizBiblicoState.current+1}/${quizBiblicoState.qs.length}</span>
+      </div>
+      <div class="question-text">${q.text}</div>
+      <div class="options">${q.opts.map((o,i)=>`
+        <button class="option-btn" onclick="answerBiblico(this,${i})">
+          <span class="option-letter">${letters[i]}</span>${o}
+        </button>`).join('')}
+      </div>
+      <div class="feedback-box" id="bibl-feedback"></div>
+    </div>
+    <button class="btn" id="bibl-next" onclick="nextBiblico()" disabled>Próxima →</button>`;
+}
+
+function answerBiblico(btn, chosen) {
+  if (quizBiblicoState.answered) return;
+  quizBiblicoState.answered = true;
+  const q = quizBiblicoState.qs[quizBiblicoState.current];
+  const correct = q.ans;
+  const exp = q.exp;
+  btn.closest('.options').querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('bibl-feedback');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    fb.className = 'feedback-box correct show';
+    fb.innerHTML = '✅ ' + exp;
+    quizBiblicoState.correct++;
+    addPoints(10);
+    showToast('+10 pontos! ✝️');
+  } else {
+    btn.classList.add('wrong');
+    btn.closest('.options').querySelectorAll('.option-btn')[correct].classList.add('correct');
+    fb.className = 'feedback-box wrong show';
+    fb.innerHTML = '❌ ' + exp;
+  }
+  document.getElementById('bibl-next').disabled = false;
+}
+
+function nextBiblico() { quizBiblicoState.current++; renderQuizBiblico(); }
+
+// ===== HÁBITOS =====
+const habits = [
+  { icon: '💧', name: 'Água', desc: '8 copos por dia' },
+  { icon: '📚', name: 'Leitura', desc: '30 min de leitura' },
+  { icon: '💪', name: 'Exercício', desc: 'Atividade física' },
+  { icon: '📝', name: 'Estudo', desc: 'Meta de estudo' },
+  { icon: '🙏', name: 'Oração', desc: 'Momento espiritual' },
+  { icon: '😴', name: 'Sono', desc: '8h de sono' },
+  { icon: '🥗', name: 'Alimentação', desc: 'Comer bem' },
+  { icon: '🚶', name: 'Caminhada', desc: '10k passos' },
+];
+
+function loadHabits() {
+  const today = new Date().toDateString();
+  const saved = localStorage.getItem('ef_habits_' + today);
+  if (saved) try { state.habits = JSON.parse(saved); } catch(e) {}
+}
+
+function renderHabits() {
+  const today = new Date().toDateString();
+  const grid = document.getElementById('habit-grid');
+  grid.innerHTML = habits.map((h, i) => `
+    <div class="habit-card ${state.habits[i] ? 'done' : ''}" onclick="toggleHabit(${i})">
+      <div class="h-icon">${h.icon}</div>
+      <div class="h-name">${h.name}</div>
+      <div class="h-status">${state.habits[i] ? '✅ Concluído' : h.desc}</div>
+    </div>`).join('');
+
+  // Streak bar
+  const bar = document.getElementById('streak-bar');
+  const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const todayDay = new Date().getDay();
+  bar.innerHTML = days.map((d, i) => {
+    let cls = 'streak-day';
+    if (i < todayDay) cls += ' done';
+    if (i === todayDay) cls += ' today';
+    return `<div class="${cls}">${d}</div>`;
+  }).join('');
+}
+
+function toggleHabit(i) {
+  state.habits[i] = !state.habits[i];
+  const today = new Date().toDateString();
+  localStorage.setItem('ef_habits_' + today, JSON.stringify(state.habits));
+  renderHabits();
+  if (state.habits[i]) { addPoints(5); showToast('+5 pts por hábito! 🌱'); }
+}
+
+// ===== METAS =====
+function loadMetas() {
+  const saved = localStorage.getItem('ef_metas');
+  if (saved) try { state.metas = JSON.parse(saved); } catch(e) {}
+  ['anual','mensal','semanal'].forEach(k => {
+    const el = document.getElementById('meta-'+k);
+    if (el && state.metas[k]) el.value = state.metas[k];
+  });
+}
+
+function salvarMeta(key, val) {
+  state.metas[key] = val;
+  localStorage.setItem('ef_metas', JSON.stringify(state.metas));
+}
+
+// ===== POMODORO =====
+let pomoState = { running: false, minutes: 25, seconds: 0, totalSeconds: 25*60, elapsed: 0, interval: null, sessoes: 0, totalMin: 0 };
+
+function setPomoMode(btn, mins, breakMins, label) {
+  if (pomoState.running) return;
+  document.querySelectorAll('.pomo-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  pomoState.minutes = mins;
+  pomoState.seconds = 0;
+  pomoState.totalSeconds = mins * 60;
+  pomoState.elapsed = 0;
+  updatePomoDisplay();
+  document.getElementById('pomo-label').textContent = label + (breakMins ? ` • Pausa ${breakMins}min` : '');
+  updatePomoArc();
+}
+
+function updatePomoDisplay() {
+  const m = String(pomoState.minutes).padStart(2,'0');
+  const s = String(pomoState.seconds).padStart(2,'0');
+  document.getElementById('pomo-display').textContent = m + ':' + s;
+}
+
+function updatePomoArc() {
+  const circumference = 628;
+  const remaining = (pomoState.minutes * 60 + pomoState.seconds) / pomoState.totalSeconds;
+  const offset = circumference * (1 - remaining);
+  document.getElementById('pomo-arc').style.strokeDashoffset = offset;
+}
+
+function togglePomo() {
+  if (pomoState.running) {
+    clearInterval(pomoState.interval);
+    pomoState.running = false;
+    document.getElementById('pomo-btn').textContent = '▶ Continuar';
+    document.getElementById('pomo-label').textContent = 'Pausado';
+  } else {
+    pomoState.running = true;
+    document.getElementById('pomo-btn').textContent = '⏸ Pausar';
+    document.getElementById('pomo-label').textContent = 'Focando...';
+    pomoState.interval = setInterval(() => {
+      if (pomoState.seconds === 0) {
+        if (pomoState.minutes === 0) {
+          clearInterval(pomoState.interval);
+          pomoState.running = false;
+          pomoState.sessoes++;
+          pomoState.totalMin += Math.round(pomoState.totalSeconds/60);
+          document.getElementById('pomo-sessoes').textContent = pomoState.sessoes;
+          document.getElementById('pomo-total-min').textContent = pomoState.totalMin;
+          document.getElementById('pomo-btn').textContent = '▶ Iniciar';
+          document.getElementById('pomo-label').textContent = '✅ Sessão concluída!';
+          addPoints(20);
+          showToast('Pomodoro concluído! +20 pts ⏳');
+          return;
+        }
+        pomoState.minutes--;
+        pomoState.seconds = 59;
+      } else {
+        pomoState.seconds--;
+      }
+      updatePomoDisplay();
+      updatePomoArc();
+    }, 1000);
+  }
+}
+
+function resetPomo() {
+  clearInterval(pomoState.interval);
+  pomoState.running = false;
+  pomoState.minutes = 25;
+  pomoState.seconds = 0;
+  pomoState.totalSeconds = 25 * 60;
+  document.getElementById('pomo-btn').textContent = '▶ Iniciar';
+  document.getElementById('pomo-label').textContent = 'Pronto para focar?';
+  updatePomoDisplay();
+  updatePomoArc();
+}
+
+// ===== PLANO INICIAL =====
+function startStudyPlan() {
+  const tabs = document.querySelector('#p-escola .tabs').querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  tabs[1].classList.add('active');
+  document.querySelectorAll('#p-escola .tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('escola-plano').classList.add('active');
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderHabits();
+  renderABNT();
+
+  const theme = localStorage.getItem('ef_theme');
+  if (theme === 'light') {
+    document.documentElement.setAttribute('data-theme','light');
+    document.querySelector('.theme-btn').textContent = '☀️';
+  }
+
+  // load saved redação
+  const savedRed = localStorage.getItem('ef_redacao');
+  if (savedRed) {
+    document.getElementById('essay-text').value = savedRed;
+    updateEssayCount();
+  }
+});
+</script>
+</body>
+</html>
