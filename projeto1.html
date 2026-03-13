@@ -965,28 +965,87 @@
       </div>
 
       <div class="tab-panel" id="escola-mapa">
-        <div style="max-width:700px">
+        <div style="max-width:1000px">
           <div class="quiz-setup">
             <h3 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:16px;">🧠 Resumo + Mapa Mental</h3>
             <div class="form-grid" style="margin-bottom:20px">
               <div class="form-group">
                 <label>MATÉRIA</label>
-                <select id="mapa-materia">
-                  <option>Matemática</option><option>Português</option><option>História</option>
-                  <option>Geografia</option><option>Biologia</option><option>Física</option>
-                  <option>Química</option><option>Inglês</option><option>Espanhol</option>
-                  <option>Filosofia</option><option>Sociologia</option><option>Artes</option>
-                  <option>Educação Física</option>
+                <select id="mapa-materia" onchange="atualizarMapaMental()">
+                  <option value="biologia">Biologia</option>
+                  <option value="matematica">Matemática</option>
+                  <option value="portugues">Português</option>
+                  <option value="historia">História</option>
+                  <option value="geografia">Geografia</option>
+                  <option value="fisica">Física</option>
+                  <option value="quimica">Química</option>
+                  <option value="ingles">Inglês</option>
+                  <option value="espanhol">Espanhol</option>
+                  <option value="filosofia">Filosofia</option>
+                  <option value="sociologia">Sociologia</option>
                 </select>
               </div>
               <div class="form-group">
                 <label>CONTEÚDO</label>
-                <input type="text" id="mapa-conteudo" placeholder="Ex: Funções">
+                <select id="mapa-conteudo" onchange="atualizarMapaMental()">
+                  <option value="corpo-humano">Corpo Humano</option>
+                </select>
               </div>
             </div>
-            <button class="btn" onclick="gerarMapa()">🗺️ Gerar Mapa Mental</button>
+            <div style="display:flex;gap:8px;margin-bottom:20px">
+              <button class="btn" onclick="atualizarMapaMental()">🗺️ Gerar Mapa Mental</button>
+              <button class="btn btn-outline" onclick="adicionarNoMapa()">➕ Adicionar Nó</button>
+              <button class="btn btn-outline" onclick="resetarMapa()">🔄 Resetar</button>
+            </div>
           </div>
-          <div id="mapa-resultado" style="display:none"></div>
+          <div id="mapa-resultado" style="display:block;margin-top:24px">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;position:relative;min-height:550px">
+              <p style="font-size:12px;color:var(--muted);margin-bottom:24px;padding:10px;background:rgba(108,99,255,0.08);border-radius:8px;text-align:center">💡 Clique nos nós para expandir • Arraste para reorganizar</p>
+              
+              <!-- Container do Mapa Mental -->
+              <div id="mapa-mental-container" style="position:relative;width:100%;height:500px;overflow:hidden">
+                <!-- SVG para linhas -->
+                <svg id="mapa-svg" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none" xmlns="http://www.w3.org/2000/svg"></svg>
+                
+                <!-- Nós serão inseridos aqui dinamicamente -->
+                <div id="mapa-nodes"></div>
+              </div>
+
+              <!-- Legenda de Categorias -->
+              <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(108,99,255,0.08);border-radius:8px">
+                    <span style="font-size:16px">🔵</span>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--accent)">Conceitos básicos</div>
+                      <div style="font-size:10px;color:var(--muted)">Fundamentos</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,101,132,0.08);border-radius:8px">
+                    <span style="font-size:16px">🔴</span>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--accent2)">Teoria</div>
+                      <div style="font-size:10px;color:var(--muted)">Princípios e leis</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(67,233,123,0.08);border-radius:8px">
+                    <span style="font-size:16px">🟢</span>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--accent3)">Prática</div>
+                      <div style="font-size:10px;color:var(--muted)">Exercícios</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(249,202,36,0.08);border-radius:8px">
+                    <span style="font-size:16px">🟡</span>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:#f9ca24">Aprofundamento</div>
+                      <div style="font-size:10px;color:var(--muted)">ENEM/Vestibular</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2166,19 +2225,244 @@ const questions = {
     { text: 'O que é o rizoma em Deleuze?', opts: ['Estrutura não-hierárquica múltipla','Árvore','Raiz única','Estrutura linear'], ans: 0, diff:'hard', exp:'Rizoma é uma estrutura não-hierárquica com múltiplas conexões.' },
   ],
   Sociologia: [
-    { text: 'Quem é considerado o pai da sociologia?', opts: ['Karl Marx','Max Weber','Émile Durkheim','Auguste Comte'], ans: 3, diff:'medium', exp:'Auguste Comte é considerado o fundador da sociologia.' },
+    // FÁCIL (25)
     { text: 'O que é estratificação social?', opts: ['Divisão em camadas sociais','Mobilidade social','Cultura popular','Globalização'], ans: 0, diff:'easy', exp:'Estratificação social é a divisão da sociedade em camadas ou classes.' },
     { text: 'Qual conceito se refere às normas e valores de uma sociedade?', opts: ['Cultura','Economia','Política','Biologia'], ans: 0, diff:'easy', exp:'Cultura engloba normas, valores, crenças e práticas de uma sociedade.' },
+    { text: 'O que é socialização?', opts: ['Processo de aprendizagem social','Isolamento social','Conflito social','Desigualdade social'], ans: 0, diff:'easy', exp:'Socialização é o processo pelo qual aprendemos normas e valores sociais.' },
+    { text: 'O que é instituição social?', opts: ['Estrutura organizada da sociedade','Pessoa importante','Prédio público','Empresa privada'], ans: 0, diff:'easy', exp:'Instituição social é uma estrutura organizada que regula comportamentos.' },
+    { text: 'O que é família na sociologia?', opts: ['Instituição social básica','Apenas parentes','Apenas pais e filhos','Grupo de amigos'], ans: 0, diff:'easy', exp:'Família é considerada a instituição social básica e primária.' },
+    { text: 'O que é norma social?', opts: ['Regra de comportamento','Lei jurídica','Costume pessoal','Opinião individual'], ans: 0, diff:'easy', exp:'Norma social é uma regra que orienta o comportamento em sociedade.' },
+    { text: 'O que é grupo social?', opts: ['Conjunto de pessoas com interação','Multidão','Aglomeração','Público'], ans: 0, diff:'easy', exp:'Grupo social é um conjunto de pessoas que interagem regularmente.' },
+    { text: 'O que é papel social?', opts: ['Comportamento esperado de uma posição','Profissão','Personalidade','Caráter'], ans: 0, diff:'easy', exp:'Papel social é o comportamento esperado de quem ocupa uma posição social.' },
+    { text: 'O que é status social?', opts: ['Posição na sociedade','Riqueza','Fama','Poder político'], ans: 0, diff:'easy', exp:'Status social é a posição que uma pessoa ocupa na estrutura social.' },
+    { text: 'O que é mobilidade social?', opts: ['Mudança de posição social','Mudança de cidade','Mudança de emprego','Mudança de escola'], ans: 0, diff:'easy', exp:'Mobilidade social é a mudança de posição na hierarquia social.' },
+    { text: 'O que é classe social?', opts: ['Grupo com mesma posição econômica','Sala de aula','Categoria profissional','Grupo étnico'], ans: 0, diff:'easy', exp:'Classe social é um grupo que compartilha posição econômica similar.' },
+    { text: 'O que é desigualdade social?', opts: ['Distribuição desigual de recursos','Diferença de opinião','Diversidade cultural','Pluralidade política'], ans: 0, diff:'easy', exp:'Desigualdade social é a distribuição desigual de recursos e oportunidades.' },
+    { text: 'O que é preconceito?', opts: ['Julgamento prévio sem fundamento','Opinião fundamentada','Conhecimento científico','Experiência pessoal'], ans: 0, diff:'easy', exp:'Preconceito é um julgamento prévio e sem fundamento sobre algo ou alguém.' },
+    { text: 'O que é discriminação?', opts: ['Tratamento desigual injusto','Diferenciação justa','Seleção natural','Escolha pessoal'], ans: 0, diff:'easy', exp:'Discriminação é o tratamento desigual e injusto baseado em características.' },
+    { text: 'O que é etnia?', opts: ['Grupo com identidade cultural comum','Raça biológica','Nacionalidade','Religião'], ans: 0, diff:'easy', exp:'Etnia é um grupo que compartilha identidade cultural, língua e tradições.' },
+    { text: 'O que é gênero na sociologia?', opts: ['Construção social do masculino/feminino','Sexo biológico','Orientação sexual','Identidade pessoal'], ans: 0, diff:'easy', exp:'Gênero é a construção social e cultural do que é masculino e feminino.' },
+    { text: 'O que é trabalho na sociologia?', opts: ['Atividade humana transformadora','Apenas emprego formal','Apenas trabalho manual','Apenas trabalho remunerado'], ans: 0, diff:'easy', exp:'Trabalho é toda atividade humana que transforma a natureza e a sociedade.' },
+    { text: 'O que é poder na sociologia?', opts: ['Capacidade de influenciar outros','Apenas força física','Apenas autoridade legal','Apenas riqueza'], ans: 0, diff:'easy', exp:'Poder é a capacidade de influenciar o comportamento de outros.' },
+    { text: 'O que é Estado?', opts: ['Instituição política com poder soberano','Governo','País','Nação'], ans: 0, diff:'easy', exp:'Estado é a instituição política que detém o poder soberano sobre um território.' },
+    { text: 'O que é cidadania?', opts: ['Conjunto de direitos e deveres','Apenas votar','Apenas pagar impostos','Apenas obedecer leis'], ans: 0, diff:'easy', exp:'Cidadania é o conjunto de direitos e deveres de um membro da sociedade.' },
+    { text: 'O que é democracia?', opts: ['Governo do povo','Governo de um','Governo de poucos','Governo militar'], ans: 0, diff:'easy', exp:'Democracia é o sistema político em que o poder pertence ao povo.' },
+    { text: 'O que é ideologia?', opts: ['Conjunto de ideias e valores','Apenas política','Apenas religião','Apenas filosofia'], ans: 0, diff:'easy', exp:'Ideologia é um conjunto de ideias e valores que orienta a visão de mundo.' },
+    { text: 'O que é movimento social?', opts: ['Ação coletiva por mudança','Mudança individual','Migração','Mobilidade'], ans: 0, diff:'easy', exp:'Movimento social é uma ação coletiva organizada que busca mudanças.' },
+    { text: 'O que é globalização?', opts: ['Integração mundial','Isolamento','Nacionalismo','Regionalismo'], ans: 0, diff:'easy', exp:'Globalização é o processo de integração econômica, cultural e política mundial.' },
+    { text: 'O que é urbanização?', opts: ['Crescimento das cidades','Crescimento rural','Migração','Industrialização'], ans: 0, diff:'easy', exp:'Urbanização é o processo de crescimento e expansão das cidades.' },
+    // MÉDIO (25)
+    { text: 'Quem é considerado o pai da sociologia?', opts: ['Karl Marx','Max Weber','Émile Durkheim','Auguste Comte'], ans: 3, diff:'medium', exp:'Auguste Comte é considerado o fundador da sociologia.' },
+    { text: 'Qual conceito de Durkheim explica a coesão social?', opts: ['Solidariedade social','Luta de classes','Ação social','Burocracia'], ans: 0, diff:'medium', exp:'Durkheim desenvolveu o conceito de solidariedade social (mecânica e orgânica).' },
+    { text: 'O que é fato social para Durkheim?', opts: ['Fenômeno exterior e coercitivo','Ação individual','Pensamento pessoal','Sentimento íntimo'], ans: 0, diff:'medium', exp:'Fato social é exterior ao indivíduo, coercitivo e geral na sociedade.' },
+    { text: 'O que é anomia segundo Durkheim?', opts: ['Ausência de normas sociais','Excesso de normas','Conflito de normas','Normas rígidas'], ans: 0, diff:'medium', exp:'Anomia é o estado de ausência ou enfraquecimento das normas sociais.' },
+    { text: 'Qual é o conceito central de Karl Marx?', opts: ['Luta de classes','Solidariedade','Ação social','Burocracia'], ans: 0, diff:'medium', exp:'A luta de classes é o conceito central da teoria marxista.' },
+    { text: 'O que é mais-valia para Marx?', opts: ['Valor excedente apropriado pelo capitalista','Salário justo','Lucro legal','Imposto'], ans: 0, diff:'medium', exp:'Mais-valia é o valor produzido pelo trabalhador além do seu salário.' },
+    { text: 'O que é alienação para Marx?', opts: ['Separação do trabalhador do produto','Doença mental','Isolamento social','Desemprego'], ans: 0, diff:'medium', exp:'Alienação é a separação do trabalhador do produto e processo de trabalho.' },
+    { text: 'O que é infraestrutura para Marx?', opts: ['Base econômica da sociedade','Construções','Estradas','Tecnologia'], ans: 0, diff:'medium', exp:'Infraestrutura é a base econômica (forças e relações de produção).' },
+    { text: 'O que é superestrutura para Marx?', opts: ['Instituições políticas e culturais','Prédios altos','Pontes','Torres'], ans: 0, diff:'medium', exp:'Superestrutura são as instituições políticas, jurídicas e culturais.' },
+    { text: 'O que é ação social para Max Weber?', opts: ['Ação com sentido orientada a outros','Qualquer ação','Ação individual','Ação coletiva'], ans: 0, diff:'medium', exp:'Ação social é uma ação dotada de sentido e orientada para outros.' },
+    { text: 'Quais são os tipos de ação social de Weber?', opts: ['Racional, afetiva, tradicional, valor','Apenas racional','Apenas emocional','Apenas tradicional'], ans: 0, diff:'medium', exp:'Weber identificou 4 tipos: racional instrumental, racional valorativa, afetiva e tradicional.' },
+    { text: 'O que é dominação para Weber?', opts: ['Probabilidade de obediência','Apenas força','Apenas persuasão','Apenas tradição'], ans: 0, diff:'medium', exp:'Dominação é a probabilidade de encontrar obediência a uma ordem.' },
+    { text: 'Quais são os tipos de dominação de Weber?', opts: ['Legal, tradicional, carismática','Apenas legal','Apenas tradicional','Apenas carismática'], ans: 0, diff:'medium', exp:'Weber identificou três tipos puros de dominação legítima.' },
+    { text: 'O que é burocracia para Weber?', opts: ['Organização racional-legal','Apenas papelada','Ineficiência','Corrupção'], ans: 0, diff:'medium', exp:'Burocracia é o tipo ideal de organização racional-legal moderna.' },
+    { text: 'O que é capital cultural segundo Bourdieu?', opts: ['Conhecimentos e habilidades valorizados','Dinheiro','Propriedades','Ações'], ans: 0, diff:'medium', exp:'Capital cultural são conhecimentos, habilidades e credenciais valorizadas.' },
+    { text: 'O que é habitus para Bourdieu?', opts: ['Disposições incorporadas','Hábito simples','Costume','Tradição'], ans: 0, diff:'medium', exp:'Habitus são disposições duráveis incorporadas pela socialização.' },
+    { text: 'O que é violência simbólica segundo Bourdieu?', opts: ['Imposição sutil de dominação','Violência física','Violência verbal','Violência psicológica'], ans: 0, diff:'medium', exp:'Violência simbólica é a imposição sutil e naturalizada de dominação.' },
+    { text: 'O que é estruturalismo?', opts: ['Análise de estruturas sociais','Análise individual','Análise psicológica','Análise biológica'], ans: 0, diff:'medium', exp:'Estruturalismo analisa as estruturas subjacentes que organizam a sociedade.' },
+    { text: 'O que é funcionalismo?', opts: ['Sociedade como sistema de funções','Sociedade em conflito','Sociedade em mudança','Sociedade caótica'], ans: 0, diff:'medium', exp:'Funcionalismo vê a sociedade como um sistema onde cada parte tem função.' },
+    { text: 'O que é interacionismo simbólico?', opts: ['Foco nas interações e significados','Foco em estruturas','Foco em classes','Foco em instituições'], ans: 0, diff:'medium', exp:'Interacionismo simbólico foca nas interações cotidianas e seus significados.' },
+    { text: 'O que é etnocentrismo?', opts: ['Julgar outras culturas pela própria','Respeito cultural','Relativismo','Pluralismo'], ans: 0, diff:'medium', exp:'Etnocentrismo é julgar outras culturas pelos padrões da própria cultura.' },
+    { text: 'O que é relativismo cultural?', opts: ['Compreender culturas em seus contextos','Julgar culturas','Hierarquizar culturas','Ignorar culturas'], ans: 0, diff:'medium', exp:'Relativismo cultural busca compreender cada cultura em seu próprio contexto.' },
+    { text: 'O que é multiculturalismo?', opts: ['Coexistência de diversas culturas','Cultura única','Assimilação cultural','Aculturação'], ans: 0, diff:'medium', exp:'Multiculturalismo é a coexistência e valorização de diversas culturas.' },
+    { text: 'O que é secularização?', opts: ['Diminuição da influência religiosa','Aumento religioso','Fundamentalismo','Teocracia'], ans: 0, diff:'medium', exp:'Secularização é o processo de diminuição da influência religiosa na sociedade.' },
+    { text: 'O que é modernização?', opts: ['Transformação para sociedade moderna','Volta ao passado','Estagnação','Tradição'], ans: 0, diff:'medium', exp:'Modernização é o processo de transformação em direção à sociedade moderna.' },
+    // DIFÍCIL (25)
+    { text: 'O que é a teoria da ação comunicativa de Habermas?', opts: ['Ação orientada ao entendimento','Ação estratégica','Ação instrumental','Ação tradicional'], ans: 0, diff:'hard', exp:'Ação comunicativa busca o entendimento mútuo através do diálogo racional.' },
+    { text: 'O que é o conceito de campo em Bourdieu?', opts: ['Espaço de relações e disputas','Campo agrícola','Campo de futebol','Campo magnético'], ans: 0, diff:'hard', exp:'Campo é um espaço social de relações objetivas e disputas por capital.' },
+    { text: 'O que é a jaula de ferro de Weber?', opts: ['Racionalização burocrática aprisionadora','Prisão real','Metáfora religiosa','Sistema político'], ans: 0, diff:'hard', exp:'Jaula de ferro é a metáfora para a racionalização burocrática que aprisiona.' },
+    { text: 'O que é a ética protestante segundo Weber?', opts: ['Espírito do capitalismo','Apenas religião','Apenas economia','Apenas moral'], ans: 0, diff:'hard', exp:'Weber relacionou a ética protestante com o espírito do capitalismo.' },
+    { text: 'O que é consciência de classe para Marx?', opts: ['Percepção da posição de classe','Apenas conhecimento','Apenas ideologia','Apenas cultura'], ans: 0, diff:'hard', exp:'Consciência de classe é a percepção dos interesses comuns de uma classe.' },
+    { text: 'O que é fetichismo da mercadoria para Marx?', opts: ['Relações sociais aparecem como coisas','Adoração de objetos','Consumismo','Materialismo'], ans: 0, diff:'hard', exp:'Fetichismo da mercadoria é quando relações sociais aparecem como propriedades das coisas.' },
+    { text: 'O que é a sociedade disciplinar de Foucault?', opts: ['Controle através de disciplinas','Sociedade militar','Sociedade educada','Sociedade religiosa'], ans: 0, diff:'hard', exp:'Sociedade disciplinar exerce controle através de instituições disciplinares.' },
+    { text: 'O que é biopoder para Foucault?', opts: ['Poder sobre a vida das populações','Poder biológico','Poder natural','Poder vital'], ans: 0, diff:'hard', exp:'Biopoder é o poder exercido sobre a vida e os corpos das populações.' },
+    { text: 'O que é panóptico para Foucault?', opts: ['Modelo de vigilância e controle','Prisão comum','Escola','Hospital'], ans: 0, diff:'hard', exp:'Panóptico é o modelo arquitetural que simboliza a vigilância constante.' },
+    { text: 'O que é a sociedade líquida de Bauman?', opts: ['Modernidade fluida e instável','Sociedade aquática','Sociedade flexível','Sociedade moderna'], ans: 0, diff:'hard', exp:'Sociedade líquida caracteriza a modernidade fluida, instável e individualizada.' },
+    { text: 'O que é a sociedade do espetáculo de Debord?', opts: ['Relações mediadas por imagens','Sociedade teatral','Sociedade artística','Sociedade cultural'], ans: 0, diff:'hard', exp:'Sociedade do espetáculo é onde relações sociais são mediadas por imagens.' },
+    { text: 'O que é a indústria cultural de Adorno?', opts: ['Produção cultural padronizada','Apenas cinema','Apenas música','Apenas TV'], ans: 0, diff:'hard', exp:'Indústria cultural produz cultura de massa padronizada e mercantilizada.' },
+    { text: 'O que é hegemonia para Gramsci?', opts: ['Dominação por consenso cultural','Apenas força','Apenas coerção','Apenas violência'], ans: 0, diff:'hard', exp:'Hegemonia é a dominação através do consenso cultural e ideológico.' },
+    { text: 'O que é a teoria do reconhecimento de Honneth?', opts: ['Luta por reconhecimento social','Apenas identidade','Apenas respeito','Apenas amor'], ans: 0, diff:'hard', exp:'Teoria do reconhecimento analisa as lutas sociais por reconhecimento.' },
+    { text: 'O que é interseccionalidade?', opts: ['Interseção de opressões múltiplas','Apenas gênero','Apenas raça','Apenas classe'], ans: 0, diff:'hard', exp:'Interseccionalidade analisa como diferentes opressões se intersectam.' },
+    { text: 'O que é a teoria dos sistemas de Luhmann?', opts: ['Sociedade como sistema autopoiético','Sistema mecânico','Sistema biológico','Sistema físico'], ans: 0, diff:'hard', exp:'Luhmann vê a sociedade como sistema autopoiético de comunicações.' },
+    { text: 'O que é a sociedade de risco de Beck?', opts: ['Modernidade produz riscos globais','Sociedade perigosa','Sociedade violenta','Sociedade instável'], ans: 0, diff:'hard', exp:'Sociedade de risco é caracterizada pela produção de riscos globais.' },
+    { text: 'O que é cosmopolitismo?', opts: ['Cidadania mundial','Apenas viajar','Apenas conhecer culturas','Apenas falar línguas'], ans: 0, diff:'hard', exp:'Cosmopolitismo é a ideia de cidadania e pertencimento mundial.' },
+    { text: 'O que é a teoria da escolha racional?', opts: ['Ação baseada em cálculo racional','Ação emocional','Ação tradicional','Ação irracional'], ans: 0, diff:'hard', exp:'Teoria da escolha racional assume que atores agem por cálculo racional.' },
+    { text: 'O que é a teoria da estruturação de Giddens?', opts: ['Dualidade entre estrutura e agência','Apenas estrutura','Apenas agência','Apenas ação'], ans: 0, diff:'hard', exp:'Teoria da estruturação enfatiza a dualidade entre estrutura e agência.' },
+    { text: 'O que é reflexividade para Giddens?', opts: ['Monitoramento constante da ação','Apenas pensar','Apenas refletir','Apenas meditar'], ans: 0, diff:'hard', exp:'Reflexividade é o monitoramento constante e revisão das ações sociais.' },
+    { text: 'O que é a teoria do ator-rede de Latour?', opts: ['Redes de humanos e não-humanos','Apenas humanos','Apenas objetos','Apenas tecnologia'], ans: 0, diff:'hard', exp:'Teoria do ator-rede analisa redes heterogêneas de humanos e não-humanos.' },
+    { text: 'O que é performatividade de gênero para Butler?', opts: ['Gênero como performance repetida','Gênero natural','Gênero biológico','Gênero fixo'], ans: 0, diff:'hard', exp:'Performatividade: gênero é construído através de performances repetidas.' },
+    { text: 'O que é necropolítica de Mbembe?', opts: ['Política sobre quem pode viver ou morrer','Política da morte','Política funerária','Política de saúde'], ans: 0, diff:'hard', exp:'Necropolítica é o poder soberano de decidir quem pode viver ou morrer.' },
+    { text: 'O que é colonialidade do poder de Quijano?', opts: ['Padrão de poder colonial persistente','Apenas colonialismo','Apenas imperialismo','Apenas dominação'], ans: 0, diff:'hard', exp:'Colonialidade do poder é o padrão de poder que persiste após o colonialismo.' },
   ],
   Artes: [
+    // FÁCIL (25)
     { text: 'Quem pintou a Mona Lisa?', opts: ['Michelangelo','Leonardo da Vinci','Rafael','Donatello'], ans: 1, diff:'easy', exp:'Leonardo da Vinci pintou a famosa Mona Lisa.' },
-    { text: 'Qual movimento artístico valorizava a emoção e a natureza?', opts: ['Realismo','Romantismo','Barroco','Cubismo'], ans: 1, diff:'medium', exp:'O Romantismo valorizava a emoção, a natureza e o individualismo.' },
     { text: 'Qual é a técnica de pintura que usa água como solvente?', opts: ['Óleo','Acrílica','Aquarela','Pastel'], ans: 2, diff:'easy', exp:'Aquarela é a técnica que usa pigmentos diluídos em água.' },
+    { text: 'Quais são as cores primárias?', opts: ['Vermelho, azul, amarelo','Verde, laranja, roxo','Preto, branco, cinza','Rosa, marrom, bege'], ans: 0, diff:'easy', exp:'As cores primárias são vermelho, azul e amarelo.' },
+    { text: 'O que é escultura?', opts: ['Arte tridimensional','Arte bidimensional','Arte sonora','Arte digital'], ans: 0, diff:'easy', exp:'Escultura é a arte de criar formas tridimensionais.' },
+    { text: 'Quem pintou o teto da Capela Sistina?', opts: ['Leonardo da Vinci','Michelangelo','Rafael','Caravaggio'], ans: 1, diff:'easy', exp:'Michelangelo pintou os afrescos do teto da Capela Sistina.' },
+    { text: 'O que é pintura?', opts: ['Arte de aplicar pigmentos','Arte de esculpir','Arte de dançar','Arte de cantar'], ans: 0, diff:'easy', exp:'Pintura é a arte de aplicar pigmentos sobre uma superfície.' },
+    { text: 'Qual é a cor resultante da mistura de azul e amarelo?', opts: ['Verde','Laranja','Roxo','Marrom'], ans: 0, diff:'easy', exp:'Azul + amarelo = verde.' },
+    { text: 'O que é desenho?', opts: ['Representação gráfica','Escultura','Música','Dança'], ans: 0, diff:'easy', exp:'Desenho é a representação gráfica feita com linhas e formas.' },
+    { text: 'Quem pintou "A Noite Estrelada"?', opts: ['Monet','Van Gogh','Picasso','Dalí'], ans: 1, diff:'easy', exp:'Vincent van Gogh pintou "A Noite Estrelada" em 1889.' },
+    { text: 'O que é fotografia?', opts: ['Arte de capturar imagens','Arte de pintar','Arte de esculpir','Arte de dançar'], ans: 0, diff:'easy', exp:'Fotografia é a arte e técnica de capturar imagens através da luz.' },
+    { text: 'Qual é a cor resultante da mistura de vermelho e azul?', opts: ['Verde','Laranja','Roxo','Marrom'], ans: 2, diff:'easy', exp:'Vermelho + azul = roxo.' },
+    { text: 'O que é teatro?', opts: ['Arte cênica','Arte visual','Arte musical','Arte literária'], ans: 0, diff:'easy', exp:'Teatro é a arte de representar histórias através da encenação.' },
+    { text: 'Quem esculpiu "Davi"?', opts: ['Leonardo da Vinci','Michelangelo','Donatello','Bernini'], ans: 1, diff:'easy', exp:'Michelangelo esculpiu a famosa estátua de Davi.' },
+    { text: 'O que é música?', opts: ['Arte dos sons','Arte visual','Arte corporal','Arte literária'], ans: 0, diff:'easy', exp:'Música é a arte de combinar sons de forma harmoniosa.' },
+    { text: 'Qual é a cor resultante da mistura de vermelho e amarelo?', opts: ['Verde','Laranja','Roxo','Marrom'], ans: 1, diff:'easy', exp:'Vermelho + amarelo = laranja.' },
+    { text: 'O que é dança?', opts: ['Arte do movimento corporal','Arte visual','Arte sonora','Arte literária'], ans: 0, diff:'easy', exp:'Dança é a arte de expressar-se através do movimento corporal.' },
+    { text: 'Quem pintou "Guernica"?', opts: ['Dalí','Picasso','Miró','Goya'], ans: 1, diff:'easy', exp:'Pablo Picasso pintou "Guernica" em 1937.' },
+    { text: 'O que é cinema?', opts: ['Arte audiovisual','Arte visual','Arte sonora','Arte literária'], ans: 0, diff:'easy', exp:'Cinema é a arte de contar histórias através de imagens em movimento.' },
+    { text: 'Quais são as cores secundárias?', opts: ['Verde, laranja, roxo','Vermelho, azul, amarelo','Preto, branco, cinza','Rosa, marrom, bege'], ans: 0, diff:'easy', exp:'As cores secundárias são verde, laranja e roxo.' },
+    { text: 'O que é artesanato?', opts: ['Trabalho manual artístico','Pintura','Escultura','Fotografia'], ans: 0, diff:'easy', exp:'Artesanato é a produção de objetos através do trabalho manual.' },
+    { text: 'Quem pintou "O Grito"?', opts: ['Van Gogh','Munch','Picasso','Dalí'], ans: 1, diff:'easy', exp:'Edvard Munch pintou "O Grito" em 1893.' },
+    { text: 'O que é grafite?', opts: ['Arte urbana','Arte clássica','Arte digital','Arte abstrata'], ans: 0, diff:'easy', exp:'Grafite é uma forma de arte urbana feita em espaços públicos.' },
+    { text: 'O que são cores quentes?', opts: ['Vermelho, laranja, amarelo','Azul, verde, roxo','Preto, branco, cinza','Todas as cores'], ans: 0, diff:'easy', exp:'Cores quentes são vermelho, laranja e amarelo.' },
+    { text: 'O que são cores frias?', opts: ['Azul, verde, roxo','Vermelho, laranja, amarelo','Preto, branco, cinza','Todas as cores'], ans: 0, diff:'easy', exp:'Cores frias são azul, verde e roxo.' },
+    { text: 'Quem pintou "A Última Ceia"?', opts: ['Michelangelo','Leonardo da Vinci','Rafael','Caravaggio'], ans: 1, diff:'easy', exp:'Leonardo da Vinci pintou "A Última Ceia" entre 1495-1498.' },
+    // MÉDIO (25)
+    { text: 'Qual movimento artístico valorizava a emoção e a natureza?', opts: ['Realismo','Romantismo','Barroco','Cubismo'], ans: 1, diff:'medium', exp:'O Romantismo valorizava a emoção, a natureza e o individualismo.' },
+    { text: 'O que caracteriza o Renascimento?', opts: ['Retorno aos valores clássicos','Arte medieval','Arte abstrata','Arte contemporânea'], ans: 0, diff:'medium', exp:'O Renascimento caracteriza-se pelo retorno aos valores greco-romanos.' },
+    { text: 'Qual movimento artístico usava formas geométricas?', opts: ['Impressionismo','Cubismo','Romantismo','Realismo'], ans: 1, diff:'medium', exp:'O Cubismo decompunha objetos em formas geométricas.' },
+    { text: 'O que é perspectiva na arte?', opts: ['Técnica de profundidade','Cor','Textura','Movimento'], ans: 0, diff:'medium', exp:'Perspectiva é a técnica que cria ilusão de profundidade.' },
+    { text: 'Qual movimento capturava impressões momentâneas da luz?', opts: ['Impressionismo','Cubismo','Surrealismo','Expressionismo'], ans: 0, diff:'medium', exp:'O Impressionismo focava nas impressões da luz e cor.' },
+    { text: 'O que caracteriza o Barroco?', opts: ['Drama e movimento','Simplicidade','Geometria','Abstração'], ans: 0, diff:'medium', exp:'O Barroco caracteriza-se pelo drama, movimento e emoção intensa.' },
+    { text: 'Quem foi o principal artista do Impressionismo?', opts: ['Picasso','Monet','Dalí','Michelangelo'], ans: 1, diff:'medium', exp:'Claude Monet foi um dos principais artistas impressionistas.' },
+    { text: 'O que é arte abstrata?', opts: ['Arte não-figurativa','Arte realista','Arte clássica','Arte medieval'], ans: 0, diff:'medium', exp:'Arte abstrata não representa formas reconhecíveis da realidade.' },
+    { text: 'Qual movimento explorava o inconsciente?', opts: ['Realismo','Surrealismo','Impressionismo','Cubismo'], ans: 1, diff:'medium', exp:'O Surrealismo explorava o mundo dos sonhos e do inconsciente.' },
+    { text: 'O que é composição na arte?', opts: ['Organização dos elementos','Cor','Textura','Material'], ans: 0, diff:'medium', exp:'Composição é a organização dos elementos visuais na obra.' },
+    { text: 'Quem foi Salvador Dalí?', opts: ['Artista surrealista','Artista impressionista','Artista barroco','Artista renascentista'], ans: 0, diff:'medium', exp:'Salvador Dalí foi um dos principais artistas do Surrealismo.' },
+    { text: 'O que caracteriza o Expressionismo?', opts: ['Expressão de emoções intensas','Realismo','Geometria','Classicismo'], ans: 0, diff:'medium', exp:'O Expressionismo enfatiza a expressão de emoções intensas.' },
+    { text: 'O que é xilogravura?', opts: ['Gravura em madeira','Pintura a óleo','Escultura em pedra','Desenho a lápis'], ans: 0, diff:'medium', exp:'Xilogravura é a técnica de gravura feita em matriz de madeira.' },
+    { text: 'Qual movimento rejeitava a arte tradicional?', opts: ['Dadaísmo','Renascimento','Barroco','Classicismo'], ans: 0, diff:'medium', exp:'O Dadaísmo rejeitava as convenções da arte tradicional.' },
+    { text: 'O que é arte conceitual?', opts: ['Ideia mais importante que execução','Arte realista','Arte clássica','Arte decorativa'], ans: 0, diff:'medium', exp:'Na arte conceitual, a ideia é mais importante que a execução.' },
+    { text: 'Quem foi Andy Warhol?', opts: ['Artista pop','Artista barroco','Artista renascentista','Artista medieval'], ans: 0, diff:'medium', exp:'Andy Warhol foi um dos principais artistas da Pop Art.' },
+    { text: 'O que caracteriza a Pop Art?', opts: ['Cultura popular e consumo','Arte clássica','Arte religiosa','Arte abstrata'], ans: 0, diff:'medium', exp:'A Pop Art incorporava elementos da cultura popular e de consumo.' },
+    { text: 'O que é afresco?', opts: ['Pintura em parede úmida','Pintura a óleo','Aquarela','Pastel'], ans: 0, diff:'medium', exp:'Afresco é a técnica de pintura sobre reboco úmido.' },
+    { text: 'Qual movimento valorizava a razão e o equilíbrio?', opts: ['Neoclassicismo','Romantismo','Expressionismo','Surrealismo'], ans: 0, diff:'medium', exp:'O Neoclassicismo valorizava a razão, ordem e equilíbrio.' },
+    { text: 'O que é performance art?', opts: ['Arte ao vivo','Pintura','Escultura','Fotografia'], ans: 0, diff:'medium', exp:'Performance art é uma forma de arte apresentada ao vivo.' },
+    { text: 'Quem foi Frida Kahlo?', opts: ['Pintora mexicana','Escultora italiana','Fotógrafa francesa','Dançarina russa'], ans: 0, diff:'medium', exp:'Frida Kahlo foi uma importante pintora mexicana.' },
+    { text: 'O que é instalação artística?', opts: ['Obra tridimensional em espaço','Pintura','Desenho','Fotografia'], ans: 0, diff:'medium', exp:'Instalação é uma obra tridimensional que ocupa um espaço.' },
+    { text: 'Qual movimento usava pontos de cor pura?', opts: ['Pontilhismo','Cubismo','Surrealismo','Expressionismo'], ans: 0, diff:'medium', exp:'O Pontilhismo usava pequenos pontos de cor pura justapostos.' },
+    { text: 'O que é arte cinética?', opts: ['Arte em movimento','Arte estática','Arte bidimensional','Arte digital'], ans: 0, diff:'medium', exp:'Arte cinética incorpora movimento real ou ilusório.' },
+    { text: 'Quem foi Tarsila do Amaral?', opts: ['Pintora modernista brasileira','Escultora francesa','Fotógrafa americana','Dançarina russa'], ans: 0, diff:'medium', exp:'Tarsila do Amaral foi uma das principais artistas do modernismo brasileiro.' },
+    // DIFÍCIL (25)
+    { text: 'O que é a teoria das cores de Goethe?', opts: ['Estudo fenomenológico das cores','Apenas física','Apenas química','Apenas biologia'], ans: 0, diff:'hard', exp:'Goethe propôs uma abordagem fenomenológica da percepção das cores.' },
+    { text: 'O que caracteriza o Maneirismo?', opts: ['Distorção e artificialismo','Naturalismo','Realismo','Simplicidade'], ans: 0, diff:'hard', exp:'O Maneirismo caracteriza-se pela distorção elegante e artificialismo.' },
+    { text: 'O que é a proporção áurea?', opts: ['Razão matemática harmônica (1,618)','Qualquer proporção','Apenas simetria','Apenas equilíbrio'], ans: 0, diff:'hard', exp:'A proporção áurea (phi = 1,618...) é considerada esteticamente harmônica.' },
+    { text: 'O que é chiaroscuro?', opts: ['Contraste entre luz e sombra','Apenas luz','Apenas sombra','Apenas cor'], ans: 0, diff:'hard', exp:'Chiaroscuro é a técnica de contraste dramático entre luz e sombra.' },
+    { text: 'O que caracteriza o Futurismo?', opts: ['Velocidade e tecnologia','Passado','Natureza','Religião'], ans: 0, diff:'hard', exp:'O Futurismo exaltava a velocidade, tecnologia e modernidade.' },
+    { text: 'O que é sfumato?', opts: ['Transição suave de tons','Contraste forte','Cores puras','Linhas definidas'], ans: 0, diff:'hard', exp:'Sfumato é a técnica de transição suave entre tons, usada por Leonardo.' },
+    { text: 'O que caracteriza o Construtivismo russo?', opts: ['Arte a serviço da revolução','Arte burguesa','Arte religiosa','Arte decorativa'], ans: 0, diff:'hard', exp:'O Construtivismo russo colocava a arte a serviço da revolução social.' },
+    { text: 'O que é a Bauhaus?', opts: ['Escola de design modernista','Movimento artístico','Técnica de pintura','Estilo arquitetônico'], ans: 0, diff:'hard', exp:'Bauhaus foi uma escola revolucionária de design e arquitetura.' },
+    { text: 'O que caracteriza o Suprematismo?', opts: ['Formas geométricas puras','Realismo','Naturalismo','Figurativismo'], ans: 0, diff:'hard', exp:'O Suprematismo de Malevich focava em formas geométricas puras.' },
+    { text: 'O que é a teoria da Gestalt na arte?', opts: ['Percepção do todo','Apenas partes','Apenas cores','Apenas formas'], ans: 0, diff:'hard', exp:'Gestalt estuda como percebemos o todo além das partes individuais.' },
+    { text: 'O que caracteriza o Neoplasticismo?', opts: ['Linhas retas e cores primárias','Curvas','Cores secundárias','Formas orgânicas'], ans: 0, diff:'hard', exp:'Neoplasticismo de Mondrian usa linhas retas e cores primárias.' },
+    { text: 'O que é a arte povera?', opts: ['Uso de materiais pobres/simples','Arte cara','Arte clássica','Arte digital'], ans: 0, diff:'hard', exp:'Arte Povera usa materiais simples e não-convencionais.' },
+    { text: 'O que caracteriza o Minimalismo?', opts: ['Redução ao essencial','Excesso','Ornamentação','Complexidade'], ans: 0, diff:'hard', exp:'Minimalismo reduz a arte aos seus elementos essenciais.' },
+    { text: 'O que é a action painting?', opts: ['Pintura gestual espontânea','Pintura detalhada','Pintura realista','Pintura clássica'], ans: 0, diff:'hard', exp:'Action painting enfatiza o ato físico e gestual de pintar.' },
+    { text: 'Quem foi Jackson Pollock?', opts: ['Pioneiro do expressionismo abstrato','Pintor renascentista','Escultor barroco','Fotógrafo moderno'], ans: 0, diff:'hard', exp:'Pollock foi pioneiro do expressionismo abstrato e da action painting.' },
+    { text: 'O que é a land art?', opts: ['Arte feita na paisagem natural','Arte urbana','Arte digital','Arte clássica'], ans: 0, diff:'hard', exp:'Land art cria obras diretamente na paisagem natural.' },
+    { text: 'O que caracteriza o Fluxus?', opts: ['Arte experimental e anti-arte','Arte tradicional','Arte clássica','Arte comercial'], ans: 0, diff:'hard', exp:'Fluxus foi um movimento experimental que questionava a arte tradicional.' },
+    { text: 'O que é a estética relacional?', opts: ['Arte baseada em relações humanas','Arte individual','Arte isolada','Arte comercial'], ans: 0, diff:'hard', exp:'Estética relacional foca nas relações humanas criadas pela arte.' },
+    { text: 'O que caracteriza o Hiperrealismo?', opts: ['Realismo extremo fotográfico','Abstração','Simplificação','Distorção'], ans: 0, diff:'hard', exp:'Hiperrealismo cria pinturas com realismo fotográfico extremo.' },
+    { text: 'O que é a teoria da mimesis?', opts: ['Arte como imitação da realidade','Arte como criação','Arte como expressão','Arte como conceito'], ans: 0, diff:'hard', exp:'Mimesis é a teoria clássica da arte como imitação da realidade.' },
+    { text: 'O que caracteriza o Transavanguardia?', opts: ['Retorno à pintura expressiva','Arte conceitual','Minimalismo','Arte digital'], ans: 0, diff:'hard', exp:'Transavanguardia marcou o retorno à pintura expressiva nos anos 80.' },
+    { text: 'O que é a arte generativa?', opts: ['Arte criada por algoritmos','Arte manual','Arte clássica','Arte tradicional'], ans: 0, diff:'hard', exp:'Arte generativa é criada através de sistemas autônomos ou algoritmos.' },
+    { text: 'O que caracteriza o Neoexpressionismo?', opts: ['Retorno à expressão emocional','Racionalismo','Minimalismo','Conceitualismo'], ans: 0, diff:'hard', exp:'Neoexpressionismo marcou o retorno à expressão emocional intensa.' },
+    { text: 'O que é a estética da recepção?', opts: ['Foco no espectador','Foco no artista','Foco na obra','Foco no mercado'], ans: 0, diff:'hard', exp:'Estética da recepção enfatiza o papel do espectador na criação de significado.' },
+    { text: 'O que caracteriza a arte pós-moderna?', opts: ['Pluralismo e desconstrução','Unidade','Pureza','Essencialismo'], ans: 0, diff:'hard', exp:'Arte pós-moderna caracteriza-se pelo pluralismo e desconstrução de narrativas.' },
   ],
   'Educação Física': [
+    // FÁCIL (25)
     { text: 'Quantos jogadores tem um time de futebol em campo?', opts: ['9','10','11','12'], ans: 2, diff:'easy', exp:'Um time de futebol tem 11 jogadores em campo.' },
+    { text: 'Qual é o esporte praticado em uma quadra com rede e bola?', opts: ['Futebol','Vôlei','Basquete','Handebol'], ans: 1, diff:'easy', exp:'Vôlei é praticado em quadra dividida por uma rede.' },
+    { text: 'Quantos jogadores tem um time de basquete em quadra?', opts: ['5','6','7','8'], ans: 0, diff:'easy', exp:'Um time de basquete tem 5 jogadores em quadra.' },
+    { text: 'O que é aquecimento?', opts: ['Preparação antes do exercício','Descanso','Alongamento final','Competição'], ans: 0, diff:'easy', exp:'Aquecimento prepara o corpo para a atividade física.' },
+    { text: 'Qual esporte usa raquete e peteca?', opts: ['Tênis','Badminton','Squash','Ping-pong'], ans: 1, diff:'easy', exp:'Badminton é o esporte que usa raquete e peteca (volante).' },
+    { text: 'Quantos sets tem um jogo de vôlei?', opts: ['Melhor de 3','Melhor de 5','Apenas 1','Apenas 2'], ans: 1, diff:'easy', exp:'Um jogo oficial de vôlei é disputado em melhor de 5 sets.' },
+    { text: 'O que é alongamento?', opts: ['Exercício de flexibilidade','Corrida','Salto','Força'], ans: 0, diff:'easy', exp:'Alongamento é o exercício que melhora a flexibilidade muscular.' },
+    { text: 'Quantos jogadores tem um time de vôlei em quadra?', opts: ['5','6','7','8'], ans: 1, diff:'easy', exp:'Um time de vôlei tem 6 jogadores em quadra.' },
+    { text: 'Qual é o objetivo do futebol?', opts: ['Fazer gols','Fazer cestas','Fazer pontos','Fazer corridas'], ans: 0, diff:'easy', exp:'O objetivo do futebol é marcar gols no gol adversário.' },
+    { text: 'O que é frequência cardíaca?', opts: ['Batimentos do coração por minuto','Respiração','Temperatura','Pressão'], ans: 0, diff:'easy', exp:'Frequência cardíaca é o número de batimentos cardíacos por minuto.' },
+    { text: 'Quantos jogadores tem um time de handebol em quadra?', opts: ['5','6','7','8'], ans: 2, diff:'easy', exp:'Um time de handebol tem 7 jogadores em quadra (incluindo goleiro).' },
+    { text: 'O que é resistência física?', opts: ['Capacidade de manter esforço','Força máxima','Velocidade','Flexibilidade'], ans: 0, diff:'easy', exp:'Resistência é a capacidade de manter um esforço por tempo prolongado.' },
+    { text: 'Qual esporte usa uma bola laranja e cesta?', opts: ['Futebol','Vôlei','Basquete','Handebol'], ans: 2, diff:'easy', exp:'Basquete usa bola laranja e o objetivo é acertar a cesta.' },
+    { text: 'O que é flexibilidade?', opts: ['Amplitude de movimento','Força','Velocidade','Resistência'], ans: 0, diff:'easy', exp:'Flexibilidade é a amplitude de movimento das articulações.' },
+    { text: 'Quantos tempos tem um jogo de futebol?', opts: ['1','2','3','4'], ans: 1, diff:'easy', exp:'Um jogo de futebol tem 2 tempos de 45 minutos cada.' },
+    { text: 'O que é velocidade?', opts: ['Rapidez de movimento','Força','Resistência','Flexibilidade'], ans: 0, diff:'easy', exp:'Velocidade é a capacidade de realizar movimentos rapidamente.' },
+    { text: 'Qual esporte é praticado em piscina?', opts: ['Futebol','Natação','Basquete','Vôlei'], ans: 1, diff:'easy', exp:'Natação é o esporte praticado em piscina.' },
+    { text: 'O que é força muscular?', opts: ['Capacidade de vencer resistência','Velocidade','Flexibilidade','Resistência'], ans: 0, diff:'easy', exp:'Força muscular é a capacidade de vencer uma resistência.' },
+    { text: 'Quantos quartos tem um jogo de basquete?', opts: ['2','3','4','5'], ans: 2, diff:'easy', exp:'Um jogo de basquete tem 4 quartos (períodos).' },
+    { text: 'O que é coordenação motora?', opts: ['Harmonia entre movimentos','Força','Velocidade','Resistência'], ans: 0, diff:'easy', exp:'Coordenação motora é a harmonia entre diferentes movimentos.' },
+    { text: 'Qual esporte usa luvas e ringue?', opts: ['Judô','Boxe','Karatê','Taekwondo'], ans: 1, diff:'easy', exp:'Boxe é praticado com luvas em um ringue.' },
+    { text: 'O que é agilidade?', opts: ['Rapidez para mudar de direção','Força','Resistência','Flexibilidade'], ans: 0, diff:'easy', exp:'Agilidade é a capacidade de mudar de direção rapidamente.' },
+    { text: 'Quantos pontos vale uma cesta de 3 no basquete?', opts: ['1','2','3','4'], ans: 2, diff:'easy', exp:'Uma cesta arremessada de fora da linha de 3 pontos vale 3 pontos.' },
+    { text: 'O que é equilíbrio?', opts: ['Manter o corpo estável','Força','Velocidade','Resistência'], ans: 0, diff:'easy', exp:'Equilíbrio é a capacidade de manter o corpo em posição estável.' },
+    { text: 'Qual esporte usa kimono?', opts: ['Boxe','Judô','Natação','Futebol'], ans: 1, diff:'easy', exp:'Judô e outras artes marciais usam kimono (quimono).' },
+    // MÉDIO (25)
     { text: 'Qual é a distância de uma maratona?', opts: ['21 km','42 km','50 km','100 km'], ans: 1, diff:'medium', exp:'Uma maratona oficial tem 42,195 km de distância.' },
-    { text: 'Em qual esporte se usa uma raquete e uma peteca?', opts: ['Tênis','Badminton','Squash','Ping-pong'], ans: 1, diff:'easy', exp:'Badminton é o esporte que usa raquete e peteca (volante).' },
+    { text: 'O que é VO2 máximo?', opts: ['Consumo máximo de oxigênio','Frequência cardíaca','Pressão arterial','Temperatura corporal'], ans: 0, diff:'medium', exp:'VO2 máximo é a capacidade máxima de consumo de oxigênio.' },
+    { text: 'Quantos metros tem uma piscina olímpica?', opts: ['25m','50m','75m','100m'], ans: 1, diff:'medium', exp:'Uma piscina olímpica tem 50 metros de comprimento.' },
+    { text: 'O que é hipertrofia muscular?', opts: ['Aumento da massa muscular','Perda muscular','Alongamento','Flexibilidade'], ans: 0, diff:'medium', exp:'Hipertrofia é o aumento do tamanho das fibras musculares.' },
+    { text: 'Qual é a altura da rede de vôlei masculino?', opts: ['2,24m','2,43m','2,50m','2,60m'], ans: 1, diff:'medium', exp:'A rede de vôlei masculino tem 2,43m de altura.' },
+    { text: 'O que é limiar anaeróbico?', opts: ['Ponto de acúmulo de lactato','Frequência máxima','Pressão mínima','Temperatura ideal'], ans: 0, diff:'medium', exp:'Limiar anaeróbico é o ponto onde começa o acúmulo de lactato.' },
+    { text: 'Quantos rounds tem uma luta de boxe profissional?', opts: ['3','8','12','15'], ans: 2, diff:'medium', exp:'Lutas de boxe profissional geralmente têm 12 rounds.' },
+    { text: 'O que é periodização do treinamento?', opts: ['Divisão em ciclos','Treino diário','Descanso','Competição'], ans: 0, diff:'medium', exp:'Periodização é a divisão do treinamento em ciclos planejados.' },
+    { text: 'Qual é a altura da cesta de basquete?', opts: ['2,50m','3,00m','3,05m','3,50m'], ans: 2, diff:'medium', exp:'A cesta de basquete fica a 3,05m de altura do chão.' },
+    { text: 'O que é treinamento intervalado?', opts: ['Alternância entre intensidades','Treino contínuo','Apenas descanso','Apenas força'], ans: 0, diff:'medium', exp:'Treinamento intervalado alterna períodos de alta e baixa intensidade.' },
+    { text: 'Quantos sets são necessários para vencer no tênis?', opts: ['1','2','3','Depende do torneio'], ans: 3, diff:'medium', exp:'Varia: melhor de 3 sets (maioria) ou melhor de 5 (Grand Slams masculino).' },
+    { text: 'O que é sobrecarga progressiva?', opts: ['Aumento gradual da carga','Treino máximo','Descanso','Alongamento'], ans: 0, diff:'medium', exp:'Sobrecarga progressiva é o aumento gradual da intensidade do treino.' },
+    { text: 'Qual é o peso oficial de uma bola de futebol?', opts: ['350-400g','410-450g','500-550g','600-650g'], ans: 1, diff:'medium', exp:'Uma bola de futebol oficial pesa entre 410 e 450 gramas.' },
+    { text: 'O que é propriocepção?', opts: ['Percepção da posição corporal','Força','Velocidade','Resistência'], ans: 0, diff:'medium', exp:'Propriocepção é a percepção da posição e movimento do corpo.' },
+    { text: 'Quantas raias tem uma piscina olímpica?', opts: ['6','8','10','12'], ans: 1, diff:'medium', exp:'Uma piscina olímpica tem 8 raias (lanes).' },
+    { text: 'O que é metabolismo basal?', opts: ['Gasto energético em repouso','Gasto no exercício','Gasto total','Gasto máximo'], ans: 0, diff:'medium', exp:'Metabolismo basal é o gasto energético do corpo em repouso.' },
+    { text: 'Qual é o diâmetro de uma bola de basquete?', opts: ['20-22cm','24-26cm','28-30cm','32-34cm'], ans: 1, diff:'medium', exp:'Uma bola de basquete tem aproximadamente 24cm de diâmetro.' },
+    { text: 'O que é fadiga muscular?', opts: ['Diminuição da capacidade contrátil','Aumento de força','Alongamento','Aquecimento'], ans: 0, diff:'medium', exp:'Fadiga muscular é a diminuição temporária da capacidade de contração.' },
+    { text: 'Quantos jogadores tem um time de futsal?', opts: ['4','5','6','7'], ans: 1, diff:'medium', exp:'Um time de futsal tem 5 jogadores em quadra (incluindo goleiro).' },
+    { text: 'O que é glicogênio?', opts: ['Reserva de energia muscular','Proteína','Vitamina','Mineral'], ans: 0, diff:'medium', exp:'Glicogênio é a forma de armazenamento de carboidratos nos músculos.' },
+    { text: 'Qual é a distância de uma meia maratona?', opts: ['10 km','15 km','21 km','30 km'], ans: 2, diff:'medium', exp:'Uma meia maratona tem 21,0975 km (metade da maratona).' },
+    { text: 'O que é potência muscular?', opts: ['Força × velocidade','Apenas força','Apenas velocidade','Resistência'], ans: 0, diff:'medium', exp:'Potência muscular é o produto da força pela velocidade.' },
+    { text: 'Quantos minutos dura um round de boxe?', opts: ['2 minutos','3 minutos','4 minutos','5 minutos'], ans: 1, diff:'medium', exp:'Um round de boxe profissional dura 3 minutos.' },
+    { text: 'O que é HIIT?', opts: ['Treino intervalado de alta intensidade','Treino leve','Treino contínuo','Treino de força'], ans: 0, diff:'medium', exp:'HIIT (High Intensity Interval Training) é treino intervalado intenso.' },
+    { text: 'Qual é a circunferência de uma bola de vôlei?', opts: ['60-62cm','65-67cm','70-72cm','75-77cm'], ans: 1, diff:'medium', exp:'Uma bola de vôlei tem circunferência de 65-67cm.' },
+    // DIFÍCIL (25)
+    { text: 'O que é o ciclo de Krebs?', opts: ['Produção de energia aeróbica','Produção anaeróbica','Síntese proteica','Quebra de gordura'], ans: 0, diff:'hard', exp:'Ciclo de Krebs é a via metabólica aeróbica de produção de ATP.' },
+    { text: 'O que é a via glicolítica?', opts: ['Metabolismo anaeróbico de glicose','Metabolismo aeróbico','Síntese proteica','Oxidação de gordura'], ans: 0, diff:'hard', exp:'Via glicolítica é o metabolismo anaeróbico que quebra glicose.' },
+    { text: 'O que é o sistema ATP-CP?', opts: ['Sistema energético imediato','Sistema aeróbico','Sistema lento','Sistema proteico'], ans: 0, diff:'hard', exp:'Sistema ATP-CP (fosfagênio) fornece energia imediata para 10-15 segundos.' },
+    { text: 'O que é a janela anabólica?', opts: ['Período pós-treino para nutrição','Período de treino','Período de descanso','Período de aquecimento'], ans: 0, diff:'hard', exp:'Janela anabólica é o período pós-treino ideal para nutrição e recuperação.' },
+    { text: 'O que é o princípio da especificidade?', opts: ['Treino específico para objetivo','Treino geral','Treino variado','Treino aleatório'], ans: 0, diff:'hard', exp:'Princípio da especificidade: adaptações são específicas ao tipo de treino.' },
+    { text: 'O que é fibra muscular tipo I?', opts: ['Fibra de contração lenta','Fibra rápida','Fibra intermediária','Fibra mista'], ans: 0, diff:'hard', exp:'Fibras tipo I são de contração lenta e resistentes à fadiga.' },
+    { text: 'O que é fibra muscular tipo II?', opts: ['Fibra de contração rápida','Fibra lenta','Fibra aeróbica','Fibra resistente'], ans: 0, diff:'hard', exp:'Fibras tipo II são de contração rápida e geram mais força.' },
+    { text: 'O que é o EPOC?', opts: ['Consumo excessivo de O2 pós-exercício','Frequência cardíaca','Pressão arterial','Temperatura'], ans: 0, diff:'hard', exp:'EPOC (Excess Post-exercise Oxygen Consumption) é o O2 extra consumido após exercício.' },
+    { text: 'O que é a lei de Henneman?', opts: ['Ordem de recrutamento de fibras','Lei da força','Lei da velocidade','Lei da resistência'], ans: 0, diff:'hard', exp:'Lei de Henneman: fibras são recrutadas da menor para a maior.' },
+    { text: 'O que é o princípio da reversibilidade?', opts: ['Perda de adaptações sem treino','Ganho contínuo','Manutenção','Progressão'], ans: 0, diff:'hard', exp:'Princípio da reversibilidade: adaptações são perdidas sem treino.' },
+    { text: 'O que é a fosfocreatina?', opts: ['Reserva energética de curta duração','Proteína','Carboidrato','Gordura'], ans: 0, diff:'hard', exp:'Fosfocreatina é a reserva energética para esforços de alta intensidade e curta duração.' },
+    { text: 'O que é o limiar de lactato?', opts: ['Ponto de acúmulo de lactato','Frequência máxima','VO2 máximo','Potência máxima'], ans: 0, diff:'hard', exp:'Limiar de lactato é a intensidade onde o lactato começa a acumular.' },
+    { text: 'O que é a economia de corrida?', opts: ['Eficiência energética ao correr','Velocidade máxima','Distância máxima','Tempo mínimo'], ans: 0, diff:'hard', exp:'Economia de corrida é a eficiência no uso de energia durante a corrida.' },
+    { text: 'O que é o princípio da variação?', opts: ['Alternar estímulos de treino','Treino constante','Treino único','Treino repetitivo'], ans: 0, diff:'hard', exp:'Princípio da variação: alternar estímulos previne adaptação e platô.' },
+    { text: 'O que é a potência aeróbica máxima?', opts: ['VO2 máximo','Força máxima','Velocidade máxima','Resistência máxima'], ans: 0, diff:'hard', exp:'Potência aeróbica máxima é sinônimo de VO2 máximo.' },
+    { text: 'O que é o débito de oxigênio?', opts: ['Déficit de O2 no início do exercício','Excesso de O2','O2 normal','O2 máximo'], ans: 0, diff:'hard', exp:'Débito de oxigênio é o déficit inicial antes do sistema aeróbico ativar.' },
+    { text: 'O que é a capacidade anaeróbica?', opts: ['Energia total sem oxigênio','Energia aeróbica','Energia mista','Energia basal'], ans: 0, diff:'hard', exp:'Capacidade anaeróbica é a quantidade total de energia produzida sem oxigênio.' },
+    { text: 'O que é o princípio da individualidade?', opts: ['Resposta individual ao treino','Treino igual para todos','Treino padronizado','Treino genérico'], ans: 0, diff:'hard', exp:'Princípio da individualidade: cada pessoa responde diferentemente ao treino.' },
+    { text: 'O que é a fadiga central?', opts: ['Fadiga do sistema nervoso','Fadiga muscular','Fadiga cardíaca','Fadiga respiratória'], ans: 0, diff:'hard', exp:'Fadiga central é a diminuição da ativação neural dos músculos.' },
+    { text: 'O que é o quociente respiratório?', opts: ['Razão CO2/O2','Frequência respiratória','Volume pulmonar','Capacidade vital'], ans: 0, diff:'hard', exp:'Quociente respiratório (QR) é a razão entre CO2 produzido e O2 consumido.' },
+    { text: 'O que é a potencialização pós-ativação?', opts: ['Aumento de força após contração','Fadiga','Recuperação','Aquecimento'], ans: 0, diff:'hard', exp:'Potencialização pós-ativação: aumento temporário de força após contração intensa.' },
+    { text: 'O que é o princípio da sobrecarga?', opts: ['Estímulo acima do habitual','Estímulo normal','Estímulo baixo','Estímulo variado'], ans: 0, diff:'hard', exp:'Princípio da sobrecarga: estímulo deve ser maior que o habitual para adaptação.' },
+    { text: 'O que é a cinética do VO2?', opts: ['Velocidade de ajuste do consumo de O2','VO2 máximo','VO2 mínimo','VO2 médio'], ans: 0, diff:'hard', exp:'Cinética do VO2 é a velocidade com que o consumo de oxigênio se ajusta.' },
+    { text: 'O que é o treinamento concorrente?', opts: ['Treino aeróbico + força simultâneo','Apenas aeróbico','Apenas força','Apenas flexibilidade'], ans: 0, diff:'hard', exp:'Treinamento concorrente combina treino aeróbico e de força no mesmo programa.' },
+    { text: 'O que é a teoria do portão da dor?', opts: ['Mecanismo de modulação da dor','Apenas dor','Apenas prazer','Apenas fadiga'], ans: 0, diff:'hard', exp:'Teoria do portão: estímulos não-dolorosos podem bloquear sinais de dor.' },
   ],
 };
 
@@ -2900,6 +3184,450 @@ function resetPomo() {
   updatePomoDisplay();
   updatePomoArc();
 }
+
+// ===== MAPA MENTAL =====
+const mapasMentais = {
+  biologia: {
+    'corpo-humano': {
+      titulo: 'Corpo Humano',
+      icone: '🧬',
+      cor: '#a855f7',
+      nos: [
+        { texto: 'Sistema Cardiovascular', icone: '🫀', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Sistema Respiratório', icone: '🫁', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Sistema Digestório', icone: '🍔', cor: '#f59e0b', tipo: 'pratica' },
+        { texto: 'Sistema Nervoso', icone: '🧠', cor: '#10b981', tipo: 'aprofundamento' },
+        { texto: 'Sistema Esquelético', icone: '🦴', cor: '#3b82f6', tipo: 'conceito' },
+        { texto: 'Sistema Muscular', icone: '💪', cor: '#8b5cf6', tipo: 'teoria' }
+      ]
+    },
+    'celula': {
+      titulo: 'Célula',
+      icone: '🔬',
+      cor: '#10b981',
+      nos: [
+        { texto: 'Membrana Plasmática', icone: '🧱', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Citoplasma', icone: '💧', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Núcleo', icone: '⚛️', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Mitocôndria', icone: '⚡', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Ribossomos', icone: '🔵', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Retículo Endoplasmático', icone: '🌊', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  matematica: {
+    'funcoes': {
+      titulo: 'Funções',
+      icone: '📈',
+      cor: '#3b82f6',
+      nos: [
+        { texto: 'Função Afim', icone: '📏', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Função Quadrática', icone: '🔄', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Função Exponencial', icone: '📊', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Função Logarítmica', icone: '📉', cor: '#10b981', tipo: 'aprofundamento' },
+        { texto: 'Domínio e Imagem', icone: '🎯', cor: '#3b82f6', tipo: 'conceito' },
+        { texto: 'Gráficos', icone: '📐', cor: '#8b5cf6', tipo: 'pratica' }
+      ]
+    },
+    'geometria': {
+      titulo: 'Geometria',
+      icone: '📐',
+      cor: '#8b5cf6',
+      nos: [
+        { texto: 'Triângulos', icone: '🔺', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Quadriláteros', icone: '🟦', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Círculos', icone: '⭕', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Áreas', icone: '📏', cor: '#10b981', tipo: 'pratica' },
+        { texto: 'Volumes', icone: '📦', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Teorema de Pitágoras', icone: '🔢', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  portugues: {
+    'classes-gramaticais': {
+      titulo: 'Classes Gramaticais',
+      icone: '📝',
+      cor: '#ec4899',
+      nos: [
+        { texto: 'Substantivo', icone: '🏷️', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Adjetivo', icone: '✨', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Verbo', icone: '⚡', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Advérbio', icone: '🎯', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Pronome', icone: '👤', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Preposição', icone: '🔗', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'sintaxe': {
+      titulo: 'Sintaxe',
+      icone: '🔤',
+      cor: '#f59e0b',
+      nos: [
+        { texto: 'Sujeito', icone: '👨', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Predicado', icone: '💬', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Objeto Direto', icone: '🎯', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Objeto Indireto', icone: '🔄', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Adjunto Adverbial', icone: '📍', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Complemento Nominal', icone: '➕', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  historia: {
+    'brasil-colonial': {
+      titulo: 'Brasil Colonial',
+      icone: '🏛️',
+      cor: '#f59e0b',
+      nos: [
+        { texto: 'Descobrimento', icone: '⛵', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Capitanias Hereditárias', icone: '🗺️', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Ciclo do Açúcar', icone: '🍬', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Escravidão', icone: '⛓️', cor: '#10b981', tipo: 'aprofundamento' },
+        { texto: 'Bandeirantes', icone: '🧭', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Ciclo do Ouro', icone: '💰', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'revolucao-francesa': {
+      titulo: 'Revolução Francesa',
+      icone: '🇫🇷',
+      cor: '#ec4899',
+      nos: [
+        { texto: 'Antigo Regime', icone: '👑', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Iluminismo', icone: '💡', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Queda da Bastilha', icone: '🏰', cor: '#f59e0b', tipo: 'pratica' },
+        { texto: 'Terror', icone: '⚔️', cor: '#10b981', tipo: 'aprofundamento' },
+        { texto: 'Napoleão', icone: '🎖️', cor: '#3b82f6', tipo: 'aprofundamento' },
+        { texto: 'Declaração dos Direitos', icone: '📜', cor: '#8b5cf6', tipo: 'teoria' }
+      ]
+    }
+  },
+  geografia: {
+    'relevo': {
+      titulo: 'Relevo',
+      icone: '⛰️',
+      cor: '#10b981',
+      nos: [
+        { texto: 'Montanhas', icone: '🏔️', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Planaltos', icone: '🗻', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Planícies', icone: '🏞️', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Depressões', icone: '🕳️', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Erosão', icone: '🌊', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Agentes Externos', icone: '💨', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'clima': {
+      titulo: 'Clima',
+      icone: '🌤️',
+      cor: '#3b82f6',
+      nos: [
+        { texto: 'Equatorial', icone: '🌴', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Tropical', icone: '☀️', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Temperado', icone: '🍂', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Polar', icone: '❄️', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Desértico', icone: '🏜️', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Fatores Climáticos', icone: '🌡️', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  fisica: {
+    'mecanica': {
+      titulo: 'Mecânica',
+      icone: '⚙️',
+      cor: '#3b82f6',
+      nos: [
+        { texto: 'Cinemática', icone: '🏃', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Dinâmica', icone: '💫', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Leis de Newton', icone: '🍎', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Energia', icone: '⚡', cor: '#10b981', tipo: 'pratica' },
+        { texto: 'Trabalho', icone: '🔧', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Potência', icone: '💪', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'eletricidade': {
+      titulo: 'Eletricidade',
+      icone: '⚡',
+      cor: '#f59e0b',
+      nos: [
+        { texto: 'Carga Elétrica', icone: '🔋', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Corrente Elétrica', icone: '🌊', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Resistência', icone: '🚧', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Lei de Ohm', icone: '📐', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Circuitos', icone: '🔌', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Potência Elétrica', icone: '💡', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  quimica: {
+    'tabela-periodica': {
+      titulo: 'Tabela Periódica',
+      icone: '🧪',
+      cor: '#8b5cf6',
+      nos: [
+        { texto: 'Metais', icone: '🔩', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Não-Metais', icone: '💨', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Gases Nobres', icone: '✨', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Períodos', icone: '↔️', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Famílias', icone: '↕️', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Propriedades Periódicas', icone: '📊', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'ligacoes-quimicas': {
+      titulo: 'Ligações Químicas',
+      icone: '🔗',
+      cor: '#ec4899',
+      nos: [
+        { texto: 'Ligação Iônica', icone: '⚡', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Ligação Covalente', icone: '🤝', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Ligação Metálica', icone: '🔩', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Polaridade', icone: '🧲', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Geometria Molecular', icone: '📐', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Forças Intermoleculares', icone: '💫', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  ingles: {
+    'verb-tenses': {
+      titulo: 'Verb Tenses',
+      icone: '⏰',
+      cor: '#3b82f6',
+      nos: [
+        { texto: 'Simple Present', icone: '📅', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Present Continuous', icone: '🔄', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Simple Past', icone: '⏮️', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Past Continuous', icone: '⏪', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Present Perfect', icone: '✅', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Future', icone: '⏭️', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    },
+    'grammar': {
+      titulo: 'Grammar',
+      icone: '📖',
+      cor: '#10b981',
+      nos: [
+        { texto: 'Nouns', icone: '🏷️', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Adjectives', icone: '✨', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Verbs', icone: '⚡', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Adverbs', icone: '🎯', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Prepositions', icone: '🔗', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Conditionals', icone: '❓', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  espanhol: {
+    'verbos': {
+      titulo: 'Verbos',
+      icone: '🗣️',
+      cor: '#ec4899',
+      nos: [
+        { texto: 'Presente', icone: '📅', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Pretérito', icone: '⏮️', cor: '#ec4899', tipo: 'conceito' },
+        { texto: 'Imperfecto', icone: '⏪', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Futuro', icone: '⏭️', cor: '#10b981', tipo: 'teoria' },
+        { texto: 'Subjuntivo', icone: '❓', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Condicional', icone: '🤔', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  filosofia: {
+    'filosofia-antiga': {
+      titulo: 'Filosofia Antiga',
+      icone: '🏛️',
+      cor: '#8b5cf6',
+      nos: [
+        { texto: 'Sócrates', icone: '👨‍🏫', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Platão', icone: '📚', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Aristóteles', icone: '🎓', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Pré-Socráticos', icone: '🌊', cor: '#10b981', tipo: 'conceito' },
+        { texto: 'Estoicismo', icone: '🗿', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Epicurismo', icone: '🍇', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  },
+  sociologia: {
+    'teorias-sociologicas': {
+      titulo: 'Teorias Sociológicas',
+      icone: '👥',
+      cor: '#10b981',
+      nos: [
+        { texto: 'Funcionalismo', icone: '⚙️', cor: '#a855f7', tipo: 'conceito' },
+        { texto: 'Marxismo', icone: '✊', cor: '#ec4899', tipo: 'teoria' },
+        { texto: 'Weber', icone: '📊', cor: '#f59e0b', tipo: 'teoria' },
+        { texto: 'Durkheim', icone: '🔗', cor: '#10b981', tipo: 'conceito' },
+        { texto: 'Estratificação Social', icone: '📈', cor: '#3b82f6', tipo: 'pratica' },
+        { texto: 'Movimentos Sociais', icone: '✊', cor: '#8b5cf6', tipo: 'aprofundamento' }
+      ]
+    }
+  }
+};
+
+let mapaAtual = { nodes: [], connections: [] };
+let nodeIdCounter = 0;
+
+function atualizarConteudosMapa() {
+  const materia = document.getElementById('mapa-materia').value;
+  const select = document.getElementById('mapa-conteudo');
+  select.innerHTML = '';
+  
+  const conteudos = mapasMentais[materia];
+  if (conteudos) {
+    Object.keys(conteudos).forEach(key => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = conteudos[key].titulo;
+      select.appendChild(option);
+    });
+  }
+}
+
+function atualizarMapaMental() {
+  const materia = document.getElementById('mapa-materia').value;
+  const conteudo = document.getElementById('mapa-conteudo').value;
+  const dados = mapasMentais[materia]?.[conteudo];
+  
+  if (!dados) return;
+  
+  mapaAtual = { nodes: [], connections: [] };
+  nodeIdCounter = 0;
+  
+  // Criar nó central
+  const centralNode = {
+    id: nodeIdCounter++,
+    texto: dados.titulo,
+    icone: dados.icone,
+    cor: dados.cor,
+    x: 450,
+    y: 250,
+    tipo: 'central'
+  };
+  mapaAtual.nodes.push(centralNode);
+  
+  // Criar nós secundários
+  const raio = 200;
+  const angleStep = (Math.PI * 2) / dados.nos.length;
+  
+  dados.nos.forEach((no, i) => {
+    const angle = angleStep * i - Math.PI / 2;
+    const x = 450 + Math.cos(angle) * raio;
+    const y = 250 + Math.sin(angle) * raio;
+    
+    const node = {
+      id: nodeIdCounter++,
+      texto: no.texto,
+      icone: no.icone,
+      cor: no.cor,
+      x: x,
+      y: y,
+      tipo: no.tipo
+    };
+    mapaAtual.nodes.push(node);
+    mapaAtual.connections.push({ from: 0, to: node.id });
+  });
+  
+  renderizarMapa();
+}
+
+function renderizarMapa() {
+  const container = document.getElementById('mapa-nodes');
+  const svg = document.getElementById('mapa-svg');
+  
+  container.innerHTML = '';
+  svg.innerHTML = '';
+  
+  // Renderizar conexões
+  mapaAtual.connections.forEach(conn => {
+    const fromNode = mapaAtual.nodes.find(n => n.id === conn.from);
+    const toNode = mapaAtual.nodes.find(n => n.id === conn.to);
+    
+    if (fromNode && toNode) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const midX = (fromNode.x + toNode.x) / 2;
+      const midY = (fromNode.y + toNode.y) / 2;
+      const d = `M ${fromNode.x} ${fromNode.y} Q ${midX} ${midY - 50}, ${toNode.x} ${toNode.y}`;
+      
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', toNode.cor);
+      path.setAttribute('stroke-width', '3');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.6');
+      svg.appendChild(path);
+    }
+  });
+  
+  // Renderizar nós
+  mapaAtual.nodes.forEach(node => {
+    const nodeEl = document.createElement('div');
+    nodeEl.style.position = 'absolute';
+    nodeEl.style.left = (node.x - 80) + 'px';
+    nodeEl.style.top = (node.y - 25) + 'px';
+    nodeEl.style.cursor = 'pointer';
+    nodeEl.style.zIndex = node.tipo === 'central' ? '10' : '5';
+    
+    if (node.tipo === 'central') {
+      nodeEl.innerHTML = `
+        <div style="background:linear-gradient(135deg,${node.cor},#ec4899);padding:20px 32px;border-radius:20px;box-shadow:0 8px 32px rgba(168,85,247,0.4);text-align:center;min-width:180px">
+          <div style="font-size:24px;margin-bottom:4px">${node.icone}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:white">${node.texto}</div>
+        </div>
+      `;
+    } else {
+      const alpha = node.cor + '26';
+      nodeEl.innerHTML = `
+        <div style="background:${alpha};border:2px solid ${node.cor};padding:12px 20px;border-radius:12px;backdrop-filter:blur(10px);min-width:160px;text-align:center">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${node.icone} ${node.texto}</div>
+        </div>
+      `;
+    }
+    
+    nodeEl.onclick = () => expandirNo(node.id);
+    container.appendChild(nodeEl);
+  });
+}
+
+function expandirNo(nodeId) {
+  showToast('Clique em "Adicionar Nó" para expandir! 🎯');
+}
+
+function adicionarNoMapa() {
+  const texto = prompt('Digite o texto do novo nó:');
+  if (!texto) return;
+  
+  const cores = ['#a855f7', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+  const icones = ['📌', '💡', '⭐', '🎯', '✨', '🔥', '💫', '🌟'];
+  
+  const randomCor = cores[Math.floor(Math.random() * cores.length)];
+  const randomIcone = icones[Math.floor(Math.random() * icones.length)];
+  
+  const x = 200 + Math.random() * 600;
+  const y = 100 + Math.random() * 300;
+  
+  const newNode = {
+    id: nodeIdCounter++,
+    texto: texto,
+    icone: randomIcone,
+    cor: randomCor,
+    x: x,
+    y: y,
+    tipo: 'secundario'
+  };
+  
+  mapaAtual.nodes.push(newNode);
+  mapaAtual.connections.push({ from: 0, to: newNode.id });
+  
+  renderizarMapa();
+  showToast('Nó adicionado com sucesso! ✅');
+}
+
+function resetarMapa() {
+  atualizarMapaMental();
+  showToast('Mapa resetado! 🔄');
+}
+
+// Inicializar conteúdos ao carregar
+window.addEventListener('DOMContentLoaded', () => {
+  atualizarConteudosMapa();
+  atualizarMapaMental();
+});
+
+// Atualizar conteúdos quando mudar matéria
+document.getElementById('mapa-materia')?.addEventListener('change', atualizarConteudosMapa);
 
 // ===== PLANO INICIAL =====
 function startStudyPlan() {
